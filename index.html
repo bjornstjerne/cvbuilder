@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Analyser & Optimiser | Elevate Your Career</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <a href="#" class="logo">
+                <span class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                    </svg>
+                </span>
+                <span class="logo-text">CV<span class="highlight">Optima</span></span>
+            </a>
+            <nav>
+                <!-- Theme toggle can go here if needed, or just keep it simple -->
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero-section">
+                <h1>Unlock Your Career <span class="gradient-text">Potential</span></h1>
+                <p class="subtitle">AI-powered analysis to optimize your CV and prepare you for the interview of your
+                    dreams.</p>
+            </section>
+
+            <section class="input-section">
+                <div class="input-grid">
+                    <div class="card input-card">
+                        <div class="card-header">
+                            <h2>1. Your CV</h2>
+                            <p>Paste your CV text or upload a file</p>
+                        </div>
+                        <div class="input-area">
+                            <label for="cv-file-upload" class="input-label" style="cursor: pointer;">Upload your CV Here
+                                <span style="color: #ef4444;">*</span></label>
+                            <div class="file-upload-container">
+                                <label for="cv-file-upload" class="btn btn-secondary file-input-label">
+                                    <span class="btn-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="17 8 12 3 7 8" />
+                                            <line x1="12" x2="12" y1="3" y2="15" />
+                                        </svg>
+                                    </span>
+                                    <span class="btn-text">Choose File</span>
+                                </label>
+                                <input type="file" id="cv-file-upload" accept=".pdf" class="file-input-hidden">
+                                <span id="file-name" class="file-name"></span>
+                            </div>
+                            <textarea id="cv-input" placeholder="...or paste your CV text here"
+                                spellcheck="false"></textarea>
+                            <div class="char-counter" id="cv-char-count">0 characters</div>
+
+                            <!-- ATS View Toggle -->
+                            <div class="ats-toggle-container"
+                                style="margin-top: 16px; display: flex; align-items: center; justify-content: space-between;">
+                                <span class="ats-label"
+                                    style="font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <rect width="18" height="18" x="3" y="3" rx="2" />
+                                        <path d="M9 3v18" />
+                                        <path d="m14 9 3 3-3 3" />
+                                    </svg>
+                                    <strong>ATS View</strong> (See what the robot sees)
+                                </span>
+                                <label class="switch">
+                                    <input type="checkbox" id="ats-toggle">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <!-- ATS Raw Text View (Hidden by default) -->
+                            <div id="ats-view-container" class="ats-view hidden"
+                                style="margin-top: 16px; padding: 16px; background: #F1F5F9; border: 1px solid var(--border-color); border-radius: 8px;">
+                                <h4
+                                    style="margin-bottom: 8px; font-size: 0.9rem; color: var(--text-primary); font-weight: 600;">
+                                    Raw
+                                    Extracted Text</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                                    This is exactly how an Applicant Tracking System (ATS) reads your CV.
+                                    If this looks scrambled or missing sections, your CV formatting might be rejecting
+                                    automated screening.
+                                </p>
+                                <pre id="ats-raw-text"
+                                    style="white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; color: var(--text-primary); max-height: 300px; overflow-y: auto; background: white; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);"></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card input-card">
+                        <div class="card-header">
+                            <h2>2. Job Description (Optional)</h2>
+                            <p>Paste the job ad or upload a file</p>
+                        </div>
+                        <div class="input-area">
+                            <label class="input-label">Upload Job Description <span
+                                    style="color: #94a3b8;">(Optional)</span></label>
+                            <div class="file-upload-container">
+                                <label for="jd-file-upload" class="btn btn-secondary file-input-label">
+                                    <span class="btn-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="17 8 12 3 7 8" />
+                                            <line x1="12" x2="12" y1="3" y2="15" />
+                                        </svg>
+                                    </span>
+                                    <span class="btn-text">Choose File</span>
+                                </label>
+                                <input type="file" id="jd-file-upload" accept=".pdf" class="file-input-hidden">
+                                <span id="jd-file-name" class="file-name"></span>
+                            </div>
+                            <textarea id="jd-input" placeholder="...or paste the Job Description here"
+                                spellcheck="false"></textarea>
+                            <div class="char-counter" id="jd-char-count">0 characters</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-container">
+                    <label for="model-select" class="settings-label">AI Model:</label>
+                    <select id="model-select" class="model-select">
+                        <option value="models/gemini-2.0-flash-exp">Gemini 2.0 Flash (Recommended)</option>
+                        <option value="models/gemini-1.5-flash">Gemini 1.5 Flash</option>
+                        <option value="models/gemini-1.5-pro">Gemini 1.5 Pro</option>
+                    </select>
+                    <button id="clear-all-btn" class="btn btn-outline" style="margin-left: auto;">
+                        <span class="btn-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M3 6h18" />
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                        </span>
+                        <span class="btn-text">Clear All</span>
+                    </button>
+                </div>
+
+                <div class="action-container">
+                    <button id="analyze-btn" class="btn btn-primary">
+                        <span class="btn-text">Analyze & Match</span>
+                        <span class="btn-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M5 12h14" />
+                                <path d="m12 5 7 7-7 7" />
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+
+            </section>
+
+            <section id="results-section" class="results-section">
+                <div class="section-header">
+                    <h2>Analysis Results</h2>
+                </div>
+
+                <div class="results-grid">
+                    <!-- CV Score -->
+                    <div class="card score-card"
+                        title="AI-powered score based on structure, action verbs, quantifiable achievements, and clarity">
+                        <h3>CV Strength</h3>
+                        <div class="score-circle-container">
+                            <svg class="score-circle" viewBox="0 0 36 36">
+                                <path class="circle-bg"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="score-path" class="circle" stroke-dasharray="0, 100"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="score-text placeholder">
+                                <span id="score-value">0</span>
+                                <span class="score-label">/ 100</span>
+                            </div>
+                        </div>
+                        <div id="score-message" class="score-message">Ready to Analyze</div>
+                    </div>
+
+                    <!-- JD Fit Score (Visible by default) -->
+                    <div id="jd-score-card" class="card score-card"
+                        title="AI-powered match score based on keyword alignment, skills overlap, and experience relevance">
+                        <h3>Job Fit Score</h3>
+                        <div class="score-circle-container">
+                            <svg class="score-circle" viewBox="0 0 36 36">
+                                <path class="circle-bg"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="jd-score-path" class="circle" stroke-dasharray="0, 100"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="score-text placeholder">
+                                <span id="jd-score-value">0</span>
+                                <span class="score-label">/ 100</span>
+                            </div>
+                        </div>
+                        <div id="jd-score-message" class="score-message">Ready to Match</div>
+                    </div>
+
+                    <div class="card stats-card">
+                        <h3>Key Metrics</h3>
+                        <ul class="metrics-list">
+                            <li>
+                                <span class="metric-label">Word Count</span>
+                                <span id="word-count" class="metric-value">-</span>
+                            </li>
+                            <li>
+                                <span class="metric-label">Action Verbs</span>
+                                <span id="verb-count" class="metric-value">-</span>
+                            </li>
+                            <li>
+                                <span class="metric-label">Readability</span>
+                                <span id="readability-score" class="metric-value">-</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card suggestions-card">
+                        <h3>Improvement Suggestions</h3>
+                        <ul id="suggestions-list" class="suggestions-list">
+                            <!-- Populated by JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Missing Keywords (Visible by default) -->
+                    <div id="missing-keywords-card" class="card keywords-card">
+                        <h3>Missing Keywords</h3>
+                        <p class="subtitle">Found in JD but missing from your CV</p>
+                        <div id="missing-keywords-list" class="keywords-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Cover Letter Button -->
+                <div id="cover-letter-action" class="action-container" style="margin-top: 32px; display: none;">
+                    <button id="generate-cover-letter-btn" class="btn btn-secondary">
+                        <span class="btn-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" x2="8" y1="13" y2="13" />
+                                <line x1="16" x2="8" y1="17" y2="17" />
+                                <line x1="10" x2="8" y1="9" y2="9" />
+                            </svg>
+                        </span>
+                        <span class="btn-text">Generate Cover Letter</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Smart Section Tuner -->
+            <section id="tuner-section" class="results-section hidden">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Smart Section Tuner</h2>
+                        <p>Optimize specific parts of your CV without breaking your layout.</p>
+                    </div>
+                    <div id="tuner-container" class="tuner-grid">
+                        <!-- Sections will be injected here -->
+                        <div class="tuner-placeholder">
+                            Analyze your CV to unlock the Section Tuner.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="interview-section" class="interview-section">
+                <div class="section-header">
+                    <h2>Interview Prep</h2>
+                    <p>Based on your skills and experience</p>
+                </div>
+                <div id="questions-container" class="questions-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 CV Optima. Built for success.</p>
+        </footer>
+
+        <!-- Cover Letter Modal -->
+        <div id="cover-letter-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Your Cover Letter</h2>
+                    <button id="close-modal-btn" class="close-btn" aria-label="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="cover-letter-text" class="cover-letter-text">
+                        <!-- Cover letter content will be inserted here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="copy-cover-letter-btn" class="btn btn-primary">
+                        <span class="btn-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                            </svg>
+                        </span>
+                        <span class="btn-text">Copy to Clipboard</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="script.js?v=2.0"></script>
+</body>
+
+</html>
