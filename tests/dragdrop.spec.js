@@ -6,7 +6,7 @@ const PROD_URL = 'https://cv-builder-43x1jl7hs-bjornstjernes-projects.vercel.app
 
 test.describe('Drag-and-drop / file upload for CV', () => {
     test('selecting a file populates the CV textarea', async ({ page }) => {
-        const url = PROD_URL;
+        const url = BASE_URL; // Use local server for testing
         await page.goto(url);
 
         // Wait for file input to be present

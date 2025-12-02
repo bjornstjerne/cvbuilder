@@ -1,3 +1,5 @@
+const { checkRateLimit } = require('./utils');
+
 module.exports = async (req, res) => {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -12,6 +14,9 @@ module.exports = async (req, res) => {
         res.status(200).end();
         return;
     }
+
+    // Apply rate limiting (e.g., 120 requests per minute)
+    if (!checkRateLimit(req, res, 120, 60)) return;
 
     res.json({ status: 'ok', message: 'CV Builder API is running on Vercel' });
 };

@@ -96,15 +96,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // File Validation
     function validateFile(file) {
         const maxSize = 10 * 1024 * 1024; // 10MB
-        const allowedTypes = ['application/pdf', 'text/plain'];
+        const allowedTypes = ['application/pdf', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
+        const allowedExtensions = ['.pdf', '.txt', '.docx', '.doc'];
 
         if (file.size > maxSize) {
             showToast('File Too Large', 'Please upload a file smaller than 10MB', 'error');
             return false;
         }
 
-        if (!allowedTypes.includes(file.type)) {
-            showToast('Invalid File Type', 'Please upload a PDF or text file', 'error');
+        // Check by MIME type OR file extension (fallback for systems that don't report MIME types correctly)
+        const hasValidType = allowedTypes.includes(file.type);
+        const hasValidExtension = allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+
+        if (!hasValidType && !hasValidExtension) {
+            showToast('Invalid File Type', 'Please upload a PDF, Word, or text file', 'error');
             return false;
         }
 
@@ -450,6 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Highlight on drag over
         cvDropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
+            console.log('[Drag-Drop] Dragover event on main drop zone');
             cvDropZone.classList.add('drag-over');
         });
         cvDropZone.addEventListener('dragleave', (e) => {
@@ -458,13 +464,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         cvDropZone.addEventListener('drop', (e) => {
             e.preventDefault();
+            console.log('[Drag-Drop] Drop event on main drop zone');
             cvDropZone.classList.remove('drag-over');
             const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type === 'application/pdf') {
-                cvFileInput.files = files;
+            if (files.length > 0) {
                 handleCVFile(files[0]);
-            } else {
-                showToast('Invalid File', 'Please drop a PDF file only.', 'error');
             }
         });
         // Click to open file dialog
@@ -486,6 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ['dragenter', 'dragover'].forEach(evt => {
             cvFileContainer.addEventListener(evt, (e) => {
                 e.preventDefault();
+                console.log('[Drag-Drop] Dragenter/over event on container');
                 cvFileContainer.classList.add('drag-over');
             });
         });
@@ -497,6 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         cvFileContainer.addEventListener('drop', (e) => {
             e.preventDefault();
+            console.log('[Drag-Drop] Drop event on container');
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 cvFileInput.files = files;
@@ -527,18 +533,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleCVFile(file) {
-        if (!validateFile(file)) return;
+        console.log('[CV Upload] File received:', { name: file.name, type: file.type, size: file.size });
+
+        if (!validateFile(file)) {
+            console.log('[CV Upload] File validation failed');
+            return;
+        }
 
         cvFileNameDisplay.textContent = file.name;
         cvInput.value = "Reading PDF...";
         try {
+            console.log('[CV Upload] Starting file extraction...');
             if (file.type === "application/pdf" || file.name.toLowerCase().endsWith('.pdf')) {
+                console.log('[CV Upload] Processing as PDF');
                 const text = await extractTextFromPDF(file);
                 cvInput.value = text;
             } else if (file.name.toLowerCase().endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                console.log('[CV Upload] Processing as Word document');
                 const text = await extractTextFromDocx(file);
                 cvInput.value = text;
             } else {
+                console.log('[CV Upload] Processing as plain text');
                 const text = await file.text();
                 cvInput.value = text;
             }
@@ -546,6 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Trigger input event to update counters and ATS view
             cvInput.dispatchEvent(new Event('input'));
 
+            console.log('[CV Upload] File processed successfully');
             showToast('File Loaded', `Successfully loaded ${file.name}`, 'success');
         } catch (error) {
             console.error(error);

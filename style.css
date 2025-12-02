@@ -215,6 +215,24 @@ font-size: 16px;
     background-color: rgba(74, 144, 164, 0.03);
 }
 
+/* Styles for the new drop-zone used in CV upload */
+.drop-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: var(--card-bg);
+    width: 100%;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+    border-color: var(--accent-primary);
+    background-color: rgba(74, 144, 164, 0.03);
+}
+
 .upload-icon {
     margin-bottom: 12px;
 }
