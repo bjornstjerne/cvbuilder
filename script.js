@@ -433,13 +433,96 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- CV Upload Setup ---
+
     const cvFileInput = document.getElementById('cv-file-upload');
     const cvFileNameDisplay = document.getElementById('file-name');
+    const cvDropZone = document.getElementById('cv-drop-zone');
 
     if (cvFileInput) {
         cvFileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (file) handleCVFile(file);
+        });
+    }
+
+    // Drag-and-drop support for CV PDF
+    if (cvDropZone && cvFileInput) {
+        // Highlight on drag over
+        cvDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            cvDropZone.classList.add('drag-over');
+        });
+        cvDropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            cvDropZone.classList.remove('drag-over');
+        });
+        cvDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            cvDropZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                cvFileInput.files = files;
+                handleCVFile(files[0]);
+            } else {
+                showToast('Invalid File', 'Please drop a PDF file only.', 'error');
+            }
+        });
+        // Click to open file dialog
+        cvDropZone.addEventListener('click', () => {
+            cvFileInput.click();
+        });
+        // Keyboard accessibility
+        cvDropZone.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                cvFileInput.click();
+            }
+        });
+    }
+
+    // Also accept drops on the surrounding container and the textarea as a fallback
+    const cvFileContainer = document.querySelector('.file-upload-container');
+    if (cvFileContainer && cvFileInput) {
+        ['dragenter', 'dragover'].forEach(evt => {
+            cvFileContainer.addEventListener(evt, (e) => {
+                e.preventDefault();
+                cvFileContainer.classList.add('drag-over');
+            });
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+            cvFileContainer.addEventListener(evt, (e) => {
+                e.preventDefault();
+                cvFileContainer.classList.remove('drag-over');
+            });
+        });
+        cvFileContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                cvFileInput.files = files;
+                handleCVFile(files[0]);
+            }
+        });
+    }
+
+    // Allow dropping onto the CV textarea as well
+    if (cvInput && cvFileInput) {
+        cvInput.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            cvInput.classList.add('drag-over');
+        });
+        cvInput.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            cvInput.classList.remove('drag-over');
+        });
+        cvInput.addEventListener('drop', (e) => {
+            e.preventDefault();
+            cvInput.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                cvFileInput.files = files;
+                handleCVFile(files[0]);
+            }
         });
     }
 
