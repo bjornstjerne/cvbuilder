@@ -2,6 +2,8 @@
 
 A modern web application that analyzes CVs using Google's Gemini AI, provides job fit scoring, and generates personalized interview questions.
 
+![Playwright tests](https://github.com/bjornstjerne/cvbuilder/actions/workflows/playwright.yml/badge.svg)
+
 ## Features
 
 ✨ **File Upload Support**
@@ -67,6 +69,19 @@ CvBuilder/
    🚀 CV Builder backend running on http://localhost:3000
    📊 API endpoint: http://localhost:3000/api/analyze
    ```
+
+## Running UI tests
+
+We use Playwright for end-to-end UI tests. To run them locally:
+
+```bash
+npm ci
+npx playwright install --with-deps
+npm run test:ui
+```
+
+CI (GitHub Actions) runs the Playwright tests on push and PRs. Test artifacts (videos & reports) are uploaded to the workflow artifacts and can be downloaded from the Actions run.
+
 
 4. **Open the Frontend**
    - Open `index.html` in your web browser
