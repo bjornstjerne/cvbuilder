@@ -1,3 +1,5 @@
+const { sanitizeInput, checkRateLimit } = require('./utils');
+
 module.exports = async (req, res) => {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -18,7 +20,12 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { cvText, jdText } = req.body;
+        // Basic rate limiting per IP
+        if (!checkRateLimit(req, res, 60, 60)) return;
+
+        const { cvText: rawCvText, jdText: rawJdText } = req.body || {};
+        const cvText = sanitizeInput(rawCvText, 10000);
+        const jdText = sanitizeInput(rawJdText, 5000);
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {

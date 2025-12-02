@@ -7,7 +7,7 @@
     --card-bg: #FFFFFF;
     --text-primary: #1F2937;
     /* Darker gray for better contrast */
-    --text-secondary: #6B7280;
+    --text-secondary: #374151;
     --accent-primary: #0F766E;
     /* Teal-700 - Professional & Calm */
     --accent-secondary: #14B8A6;
@@ -37,20 +37,29 @@
 }
 
 * {
+    outline: none;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
 body {
-    font-family: var(--font-main);
-    background-color: var(--bg-color);
-    color: var(--text-primary);
-    line-height: 1.6;
-    min-height: 100vh;
-    font-size: 16px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    /* Add focus style for accessibility */
+}
+
+*:focus {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+font-family: var(--font-main);
+background-color: var(--bg-color);
+color: var(--text-primary);
+line-height: 1.6;
+min-height: 100vh;
+font-size: 16px;
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
 }
 
 .app-container {
@@ -120,6 +129,7 @@ body {
 .gradient-text {
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 

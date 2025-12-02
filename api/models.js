@@ -1,3 +1,5 @@
+const { checkRateLimit } = require('./utils');
+
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,6 +11,7 @@ module.exports = async (req, res) => {
     }
 
     try {
+        if (!checkRateLimit(req, res, 120, 60)) return;
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
             return res.status(500).json({ error: 'API key not configured' });

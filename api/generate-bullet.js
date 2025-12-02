@@ -1,3 +1,5 @@
+const { sanitizeInput, checkRateLimit } = require('./utils');
+
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,7 +15,10 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { keyword } = req.body;
+        if (!checkRateLimit(req, res, 60, 60)) return;
+
+        const { keyword: rawKeyword } = req.body || {};
+        const keyword = sanitizeInput(rawKeyword, 200);
         const apiKey = process.env.GEMINI_API_KEY;
         const modelName = 'gemini-2.0-flash-lite-001';
 
@@ -22,10 +27,10 @@ module.exports = async (req, res) => {
         }
 
         const prompt = `
-        Write a single, strong, professional resume bullet point demonstrating the skill: "${keyword}".
-        Use action verbs. Do not include any introductory text. Just the bullet point.
-        Example for "Python": "Developed automated data processing scripts using Python, reducing manual workload by 40%."
-        `;
+    Write a single, strong, professional resume bullet point demonstrating the skill: "${keyword}".
+    Use action verbs. Do not include any introductory text. Just the bullet point.
+    Example for "Python": "Developed automated data processing scripts using Python, reducing manual workload by 40%."
+    `;
 
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,

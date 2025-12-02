@@ -1,3 +1,5 @@
+const { sanitizeInput, checkRateLimit } = require('./utils');
+
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,7 +15,11 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const { sectionText, sectionTitle } = req.body;
+        if (!checkRateLimit(req, res, 60, 60)) return;
+
+        const { sectionText: rawSectionText, sectionTitle: rawSectionTitle } = req.body || {};
+        const sectionText = sanitizeInput(rawSectionText, 2000);
+        const sectionTitle = sanitizeInput(rawSectionTitle, 200);
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {

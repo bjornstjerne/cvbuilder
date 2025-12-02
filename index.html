@@ -64,8 +64,9 @@
                                 <input type="file" id="cv-file-upload" accept=".pdf" class="file-input-hidden">
                                 <span id="file-name" class="file-name"></span>
                             </div>
-                            <textarea id="cv-input" placeholder="...or paste your CV text here"
-                                spellcheck="false"></textarea>
+                            <label for="cv-input" class="input-label">Paste CV Text</label>
+                            <textarea id="cv-input" placeholder="...or paste your CV text here" spellcheck="false"
+                                aria-label="Paste CV Text"></textarea>
                             <div class="char-counter" id="cv-char-count">0 characters</div>
 
                             <!-- ATS View Toggle -->
@@ -130,8 +131,9 @@
                                 <input type="file" id="jd-file-upload" accept=".pdf" class="file-input-hidden">
                                 <span id="jd-file-name" class="file-name"></span>
                             </div>
+                            <label for="jd-input" class="input-label">Paste Job Description</label>
                             <textarea id="jd-input" placeholder="...or paste the Job Description here"
-                                spellcheck="false"></textarea>
+                                spellcheck="false" aria-label="Paste Job Description"></textarea>
                             <div class="char-counter" id="jd-char-count">0 characters</div>
                         </div>
                     </div>
@@ -305,9 +307,9 @@
 
         <!-- Cover Letter Modal -->
         <div id="cover-letter-modal" class="modal hidden">
-            <div class="modal-content">
+            <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="cover-letter-modal-title">
                 <div class="modal-header">
-                    <h2>Your Cover Letter</h2>
+                    <h2 id="cover-letter-modal-title">Your Cover Letter</h2>
                     <button id="close-modal-btn" class="close-btn" aria-label="Close">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -337,12 +339,6 @@
             </div>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="script.js?v=2.0"></script>
 </body>
 

@@ -362,6 +362,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function extractTextFromPDF(file) {
         try {
+            // Lazy-load pdf.js if not already loaded
+            if (typeof pdfjsLib === 'undefined') {
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+                // set workerSrc for pdfjs
+                if (typeof pdfjsLib !== 'undefined') {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                }
+            }
+
             const arrayBuffer = await file.arrayBuffer();
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
             let fullText = "";
@@ -440,8 +449,11 @@ document.addEventListener('DOMContentLoaded', () => {
         cvFileNameDisplay.textContent = file.name;
         cvInput.value = "Reading PDF...";
         try {
-            if (file.type === "application/pdf") {
+            if (file.type === "application/pdf" || file.name.toLowerCase().endsWith('.pdf')) {
                 const text = await extractTextFromPDF(file);
+                cvInput.value = text;
+            } else if (file.name.toLowerCase().endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                const text = await extractTextFromDocx(file);
                 cvInput.value = text;
             } else {
                 const text = await file.text();
@@ -457,6 +469,39 @@ document.addEventListener('DOMContentLoaded', () => {
             cvInput.value = "Error reading file: " + error.message;
             showToast('Error', 'Failed to read file: ' + error.message, 'error');
         }
+    }
+
+    async function extractTextFromDocx(file) {
+        // Lazy-load mammoth if needed
+        if (typeof mammoth === 'undefined') {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+        }
+
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+            // Strip HTML tags to get raw text
+            const html = result.value || '';
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || '';
+        } catch (e) {
+            console.error('DOCX Extraction Error:', e);
+            throw new Error('Could not read DOCX. Please ensure it is a valid .docx file.');
+        }
+    }
+
+    // Utility to dynamically load external scripts
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            if (document.querySelector(`script[src="${src}"]`)) return resolve();
+            const s = document.createElement('script');
+            s.src = src;
+            s.async = true;
+            s.onload = () => resolve();
+            s.onerror = () => reject(new Error('Failed to load script ' + src));
+            document.head.appendChild(s);
+        });
     }
 
     // --- JD Upload Setup ---
@@ -523,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const jdText = jdInput.value.trim();
 
             if (!cvText) {
-                alert('Please enter your CV text first.');
+                showToast('CV Required', 'Please enter your CV text first', 'error');
                 return;
             }
 
@@ -1036,4 +1081,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Keyboard accessibility for modal
+    if (coverLetterModal) {
+        coverLetterModal.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                coverLetterModal.classList.add('hidden');
+                closeModalBtn.focus();
+            }
+            if (e.key === 'Tab') {
+                const focusable = coverLetterModal.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+        });
+        // Focus modal when opened
+        document.getElementById('generate-cover-letter-btn')?.addEventListener('click', () => {
+            setTimeout(() => {
+                closeModalBtn.focus();
+            }, 100);
+        });
+    }
 });
