@@ -693,6 +693,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
+                if (response.status === 429) {
+                    throw new Error('Server is busy (Rate Limit). Please wait a minute and try again.');
+                }
                 throw new Error(errorData.message || 'Analysis failed');
             }
 
@@ -708,9 +711,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error("Analysis failed:", error);
+            const isRateLimit = error.message.includes('Rate Limit') || error.message.includes('Resource exhausted');
             showToast(
-                'Analysis Failed',
-                error.message + '. Make sure the backend server is running.',
+                isRateLimit ? 'Server Busy' : 'Analysis Failed',
+                error.message,
                 'error'
             );
         } finally {

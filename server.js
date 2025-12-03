@@ -10,10 +10,16 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('.')); // Serve static files from current directory
 
+const crypto = require('crypto');
+
+// Simple in-memory cache
+const requestCache = new Map();
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
 // Analyze endpoint
 app.post('/api/analyze', async (req, res) => {
     try {
-        const { cvText, jdText } = req.body;
+        const { cvText, jdText, model } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
@@ -22,6 +28,22 @@ app.post('/api/analyze', async (req, res) => {
 
         if (!cvText) {
             return res.status(400).json({ error: 'CV text is required' });
+        }
+
+        // Create a cache key based on inputs
+        const cacheKey = crypto
+            .createHash('md5')
+            .update(JSON.stringify({ cvText, jdText, model }))
+            .digest('hex');
+
+        // Check cache
+        if (requestCache.has(cacheKey)) {
+            const cached = requestCache.get(cacheKey);
+            if (Date.now() - cached.timestamp < CACHE_TTL) {
+                console.log('Serving from cache:', cacheKey);
+                return res.json(cached.data);
+            }
+            requestCache.delete(cacheKey);
         }
 
         // Build the prompt
@@ -66,6 +88,13 @@ app.post('/api/analyze', async (req, res) => {
         const data = await response.json();
 
         if (data.error) {
+            // Check for rate limit
+            if (data.error.code === 429 || data.error.message.includes('Resource exhausted')) {
+                return res.status(429).json({
+                    error: 'Rate limit exceeded',
+                    message: 'The AI service is currently busy. Please try again in a minute.'
+                });
+            }
             throw new Error(data.error.message);
         }
 
@@ -73,6 +102,12 @@ app.post('/api/analyze', async (req, res) => {
         // Clean up markdown code blocks if present
         const jsonText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
         const result = JSON.parse(jsonText);
+
+        // Store in cache
+        requestCache.set(cacheKey, {
+            timestamp: Date.now(),
+            data: result
+        });
 
         res.json(result);
 
