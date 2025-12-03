@@ -275,6 +275,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Download Cover Letter as PDF
+    const downloadPdfBtn = document.getElementById('download-pdf-btn');
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', () => {
+            const element = coverLetterText;
+            const opt = {
+                margin: 1,
+                filename: 'Cover_Letter.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Show loading state
+            downloadPdfBtn.disabled = true;
+            downloadPdfBtn.classList.add('loading');
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                showToast('Downloaded!', 'Cover letter saved as PDF', 'success');
+                downloadPdfBtn.disabled = false;
+                downloadPdfBtn.classList.remove('loading');
+            }).catch(err => {
+                console.error('PDF generation failed:', err);
+                showToast('Download Failed', 'Could not generate PDF', 'error');
+                downloadPdfBtn.disabled = false;
+                downloadPdfBtn.classList.remove('loading');
+            });
+        });
+    }
+
     // Copy to Clipboard Helper
     function copyToClipboard(text, successMessage = 'Copied to clipboard!') {
         navigator.clipboard.writeText(text).then(() => {
