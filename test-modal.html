@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Modal - PDF Button</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <h1>Modal Test - Click button below to see the PDF download button</h1>
+        <button id="show-modal-btn" class="btn btn-primary">Show Cover Letter Modal</button>
+
+        <!-- Cover Letter Modal -->
+        <div id="cover-letter-modal" class="modal hidden">
+            <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="cover-letter-modal-title">
+                <div class="modal-header">
+                    <h2 id="cover-letter-modal-title">Your Cover Letter</h2>
+                    <button id="close-modal-btn" class="close-btn" aria-label="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="cover-letter-text" class="cover-letter-text">
+                        This is a sample cover letter to demonstrate the PDF download feature.
+
+                        Dear Hiring Manager,
+
+                        I am writing to express my interest in the position...
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="download-pdf-btn" class="btn btn-secondary">
+                        <span class="btn-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" x2="12" y1="15" y2="3" />
+                            </svg>
+                        </span>
+                        <span class="btn-text">Download PDF</span>
+                    </button>
+                    <button id="copy-cover-letter-btn" class="btn btn-primary">
+                        <span class="btn-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                            </svg>
+                        </span>
+                        <span class="btn-text">Copy to Clipboard</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        const showModalBtn = document.getElementById('show-modal-btn');
+        const modal = document.getElementById('cover-letter-modal');
+        const closeBtn = document.getElementById('close-modal-btn');
+        const downloadBtn = document.getElementById('download-pdf-btn');
+        const copyBtn = document.getElementById('copy-cover-letter-btn');
+        const coverLetterText = document.getElementById('cover-letter-text');
+
+        showModalBtn.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            const opt = {
+                margin: 1,
+                filename: 'Cover_Letter.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = 'Downloading...';
+
+            html2pdf().set(opt).from(coverLetterText).save().then(() => {
+                alert('PDF Downloaded!');
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<span class="btn-text">Download PDF</span>';
+            });
+        });
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(coverLetterText.textContent).then(() => {
+                alert('Copied to clipboard!');
+            });
+        });
+    </script>
+</body>
+
+</html>
