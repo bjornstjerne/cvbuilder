@@ -806,7 +806,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show cover letter button if JD is provided
         if (jdInput.value.trim()) {
-            coverLetterAction.style.display = 'block';
+            coverLetterAction.classList.remove('hidden');
         }
 
         // Update basic metrics just for display
