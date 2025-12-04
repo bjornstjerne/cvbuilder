@@ -750,6 +750,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         element.innerHTML = formattedHtml;
 
+        // Append to body but hide it visually (off-screen) to ensure html2canvas can render it
+        element.style.position = 'absolute';
+        element.style.left = '-9999px';
+        element.style.top = '0';
+        document.body.appendChild(element);
+
         const opt = {
             margin: 10,
             filename: 'Optimized_CV.pdf',
@@ -758,9 +764,18 @@ document.addEventListener('DOMContentLoaded', () => {
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(element).save().then(() => {
-            showToast('Success', 'CV downloaded successfully', 'success');
-        });
+        html2pdf().set(opt).from(element).save()
+            .then(() => {
+                showToast('Success', 'CV downloaded successfully', 'success');
+                document.body.removeChild(element);
+            })
+            .catch(err => {
+                console.error('PDF Generation Error:', err);
+                showToast('Error', 'Failed to generate PDF. Please try again.', 'error');
+                if (document.body.contains(element)) {
+                    document.body.removeChild(element);
+                }
+            });
     }
 
     async function analyzeWithBackend(cvText, jdText) {
