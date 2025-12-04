@@ -263,8 +263,20 @@
                 <!-- Generate Cover Letter Section (Hidden by default) -->
                 <div id="cover-letter-action" class="next-steps-card hidden">
                     <h3>Ready to Apply?</h3>
-                    <p>Use your optimized CV to generate a professional, tailored cover letter in seconds.</p>
-                    <div class="action-container">
+                    <p>Take your optimized CV and a tailored cover letter with you.</p>
+                    <div class="action-container" style="gap: 16px; flex-wrap: wrap;">
+                        <button id="download-cv-btn" class="btn btn-secondary" style="border-width: 2px;">
+                            <span class="btn-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" x2="12" y1="15" y2="3" />
+                                </svg>
+                            </span>
+                            <span class="btn-text">Download CV as PDF</span>
+                        </button>
                         <button id="generate-cover-letter-btn" class="btn btn-prominent">
                             <span class="btn-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -277,8 +289,15 @@
                                     <line x1="10" x2="8" y1="9" y2="9" />
                                 </svg>
                             </span>
-                            <span class="btn-text">Generate Tailored Cover Letter</span>
+                            <span class="btn-text">Generate Cover Letter</span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- Hidden Template for CV PDF Generation -->
+                <div id="cv-pdf-template" style="display: none;">
+                    <div class="pdf-container" style="padding: 40px; font-family: 'Inter', sans-serif; color: #333;">
+                        <div id="pdf-content" style="white-space: pre-wrap; line-height: 1.6;"></div>
                     </div>
                 </div>
             </section>

@@ -705,6 +705,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const downloadCvBtn = document.getElementById('download-cv-btn');
+    if (downloadCvBtn) {
+        downloadCvBtn.addEventListener('click', () => {
+            const cvText = cvInput.value;
+            if (!cvText) {
+                showToast('Error', 'No CV text to download', 'error');
+                return;
+            }
+            generateCVPDF(cvText);
+        });
+    }
+
+    function generateCVPDF(text) {
+        // Create a temporary element for PDF generation
+        const element = document.createElement('div');
+        element.style.padding = '40px';
+        element.style.fontFamily = 'Arial, sans-serif';
+        element.style.fontSize = '12pt';
+        element.style.lineHeight = '1.5';
+        element.style.color = '#333';
+
+        // Simple formatting: preserve newlines and bold potential headers
+        // This is a basic heuristic to make it look better than raw text
+        let formattedHtml = text
+            .split('\n')
+            .map(line => {
+                const trimmed = line.trim();
+                // Check if line looks like a header (uppercase, short, no punctuation)
+                if (trimmed.length > 0 && trimmed.length < 50 && trimmed === trimmed.toUpperCase() && !trimmed.includes('.')) {
+                    return `<h3 style="margin-top: 20px; margin-bottom: 10px; color: #0f766e; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${trimmed}</h3>`;
+                }
+                // Check for bullet points
+                if (trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')) {
+                    return `<div style="margin-left: 20px; margin-bottom: 5px;">• ${trimmed.substring(1).trim()}</div>`;
+                }
+                // Regular paragraph
+                if (trimmed.length > 0) {
+                    return `<p style="margin-bottom: 10px;">${trimmed}</p>`;
+                }
+                return '';
+            })
+            .join('');
+
+        element.innerHTML = formattedHtml;
+
+        const opt = {
+            margin: 10,
+            filename: 'Optimized_CV.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            showToast('Success', 'CV downloaded successfully', 'success');
+        });
+    }
+
     async function analyzeWithBackend(cvText, jdText) {
         showLoading('Analyzing your CV...');
         analyzeBtn.classList.add('loading');
