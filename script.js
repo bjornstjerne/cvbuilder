@@ -347,41 +347,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.models && data.models.length > 0) {
                     modelSelect.innerHTML = '';
 
-                    // Filter to only stable, recommended models (no experimental, preview, or old versions)
+                    // Curated list of recommended models (in priority order)
+                    const curatedModelPatterns = [
+                        'gemini-2.5-flash',      // Best default - newest Flash tier
+                        'gemini-2.5-pro',        // Premium option
+                        'gemini-2.0-flash',      // Stable fallback (not lite)
+                        'gemini-2.0-flash-lite', // Free-tier friendly
+                        'gemini-1.5-pro'         // Legacy option
+                    ];
+
+                    // Filter to only stable, recommended models
                     const recommendedModels = data.models.filter(model => {
                         const name = model.name.toLowerCase();
-                        // Exclude experimental, preview, and specific dated versions
+                        // Exclude experimental, preview, dated versions, TTS, and test models
                         if (name.includes('experimental') ||
                             name.includes('preview') ||
                             name.includes('banana') ||
                             name.includes('1206') ||
                             name.includes('tts') ||
-                            /\d{2}-\d{2}/.test(name)) { // Excludes date patterns like 05-20
+                            name.includes('robotics') ||
+                            /\d{2}-\d{2}/.test(name) ||  // Excludes date patterns like 05-20
+                            /-\d{3}$/.test(name)) {      // Excludes versioned like -001
                             return false;
                         }
-                        // Only include the main stable versions
-                        return name.includes('2.0-flash') ||
-                            name.includes('1.5-flash') ||
-                            name.includes('1.5-pro');
+                        // Check if model matches any of our curated patterns
+                        return curatedModelPatterns.some(pattern => name.includes(pattern));
                     });
 
-                    // Sort to put 2.0 Flash first
+                    // Sort by curated priority order
                     const sortedModels = recommendedModels.sort((a, b) => {
-                        if (a.name.includes('2.0-flash')) return -1;
-                        if (b.name.includes('2.0-flash')) return 1;
-                        if (a.name.includes('1.5-flash')) return -1;
-                        return 1;
+                        const aName = a.name.toLowerCase();
+                        const bName = b.name.toLowerCase();
+                        const aIndex = curatedModelPatterns.findIndex(p => aName.includes(p));
+                        const bIndex = curatedModelPatterns.findIndex(p => bName.includes(p));
+                        return aIndex - bIndex;
                     });
 
-                    // Limit to top 3 models
-                    const topModels = sortedModels.slice(0, 3);
+                    // Limit to top 5 models
+                    const topModels = sortedModels.slice(0, 5);
 
-                    topModels.forEach(model => {
+                    topModels.forEach((model, index) => {
                         const option = document.createElement('option');
                         option.value = model.name;
-                        option.textContent = model.displayName || model.name.split('/').pop();
-                        // Select the first one (2.0 Flash) by default
-                        if (model.name.includes('2.0-flash')) option.selected = true;
+                        option.textContent = model.displayName;
+                        // Select the first model in the sorted list by default
+                        if (index === 0) {
+                            option.selected = true;
+                        }
                         modelSelect.appendChild(option);
                     });
                 }
