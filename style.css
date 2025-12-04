@@ -647,6 +647,26 @@ body {
     font-weight: 500;
 }
 
+/* Design Feedback Card (Visual Analysis) */
+.design-card {
+    background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%);
+    border: 1px solid #a78bfa;
+}
+
+.design-card h3 {
+    color: #7c3aed;
+    display: flex;
+    align-items: center;
+}
+
+.design-card h3 svg {
+    color: #7c3aed;
+}
+
+.design-card .suggestions-list li::before {
+    color: #7c3aed;
+}
+
 /* Interview Section */
 .interview-section {
     margin-bottom: 60px;

@@ -19,21 +19,21 @@ const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 // Analyze endpoint
 app.post('/api/analyze', async (req, res) => {
     try {
-        const { cvText, jdText, model } = req.body;
+        const { cvText, jdText, model, cvImages } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
             return res.status(500).json({ error: 'API key not configured on server' });
         }
 
-        if (!cvText) {
-            return res.status(400).json({ error: 'CV text is required' });
+        if (!cvText && (!cvImages || cvImages.length === 0)) {
+            return res.status(400).json({ error: 'CV text or images are required' });
         }
 
-        // Create a cache key based on inputs
+        // Create a cache key based on inputs (exclude images for cache to avoid huge keys)
         const cacheKey = crypto
             .createHash('md5')
-            .update(JSON.stringify({ cvText, jdText, model }))
+            .update(JSON.stringify({ cvText, jdText, model, hasImages: !!cvImages }))
             .digest('hex');
 
         // Check cache
@@ -46,36 +46,80 @@ app.post('/api/analyze', async (req, res) => {
             requestCache.delete(cacheKey);
         }
 
-        // Build the prompt
-        const prompt = `
-        You are an expert CV analyzer and career coach. Analyze the following CV text and Job Description (if provided).
+        // Build the prompt - adjusted for visual analysis
+        const isVisualAnalysis = cvImages && cvImages.length > 0;
+        const prompt = isVisualAnalysis
+            ? `You are an expert CV analyzer and career coach. Analyze the CV document shown in the image(s).
+            
+Look at BOTH the content AND the visual design:
+- Assess the layout, formatting, and visual hierarchy
+- Comment on readability and professional appearance
+- Note any design issues (cluttered, too sparse, poor font choices)
+- Evaluate the photo if present (professional quality, appropriate)
+- Analyze the actual content: skills, experience, achievements
+
+${jdText ? `JOB DESCRIPTION:\n${jdText.substring(0, 5000)}` : ""}
+
+${cvText ? `EXTRACTED TEXT (for reference):\n${cvText.substring(0, 5000)}` : ""}
+
+Provide a response in strict JSON format:
+{
+    "score": <number 0-100>,
+    "jdScore": <number 0-100, or 0 if no JD>,
+    "summary": "<brief summary of the candidate>",
+    "strengths": ["<strength 1>", "<strength 2>", ...],
+    "weaknesses": ["<weakness 1>", "<weakness 2>", ...],
+    "suggestions": ["<specific actionable suggestion 1>", "<suggestion 2>", ...],
+    "designFeedback": ["<visual/design feedback 1>", "<design feedback 2>", ...],
+    "missingKeywords": ["<keyword 1>", "<keyword 2>", ...],
+    "interviewQuestions": [
+        {"type": "behavioral", "text": "<question 1>"},
+        {"type": "technical", "text": "<question 2>"},
+        {"type": "situational", "text": "<question 3>"}
+    ]
+}`
+            : `You are an expert CV analyzer and career coach. Analyze the following CV text and Job Description (if provided).
         
-        CV TEXT:
-        ${cvText.substring(0, 10000)}
+CV TEXT:
+${cvText.substring(0, 10000)}
 
-        JOB DESCRIPTION:
-        ${jdText ? jdText.substring(0, 5000) : "Not provided"}
+JOB DESCRIPTION:
+${jdText ? jdText.substring(0, 5000) : "Not provided"}
 
-        Provide a response in strict JSON format with the following structure:
-        {
-            "score": <number 0-100>,
-            "jdScore": <number 0-100, or 0 if no JD>,
-            "summary": "<brief summary of the candidate>",
-            "strengths": ["<strength 1>", "<strength 2>", ...],
-            "weaknesses": ["<weakness 1>", "<weakness 2>", ...],
-            "suggestions": ["<specific actionable suggestion 1>", "<suggestion 2>", ...],
-            "missingKeywords": ["<keyword 1>", "<keyword 2>", ...],
-            "interviewQuestions": [
-                {"type": "behavioral", "text": "<question 1>"},
-                {"type": "technical", "text": "<question 2>"},
-                {"type": "situational", "text": "<question 3>"}
-            ]
-        }
-        `;
+Provide a response in strict JSON format with the following structure:
+{
+    "score": <number 0-100>,
+    "jdScore": <number 0-100, or 0 if no JD>,
+    "summary": "<brief summary of the candidate>",
+    "strengths": ["<strength 1>", "<strength 2>", ...],
+    "weaknesses": ["<weakness 1>", "<weakness 2>", ...],
+    "suggestions": ["<specific actionable suggestion 1>", "<suggestion 2>", ...],
+    "missingKeywords": ["<keyword 1>", "<keyword 2>", ...],
+    "interviewQuestions": [
+        {"type": "behavioral", "text": "<question 1>"},
+        {"type": "technical", "text": "<question 2>"},
+        {"type": "situational", "text": "<question 3>"}
+    ]
+}`;
 
         // Determine model name - strip 'models/' prefix if present
         const selectedModel = model ? model.replace('models/', '') : 'gemini-2.0-flash-lite-001';
-        console.log('Using model:', selectedModel);
+        console.log('Using model:', selectedModel, isVisualAnalysis ? '(with images)' : '(text only)');
+
+        // Build request parts - text + optional images
+        const parts = [{ text: prompt }];
+
+        if (isVisualAnalysis) {
+            cvImages.forEach((img, idx) => {
+                parts.push({
+                    inline_data: {
+                        mime_type: img.mimeType || 'image/jpeg',
+                        data: img.data
+                    }
+                });
+                console.log(`Added image ${idx + 1} (page ${img.page})`);
+            });
+        }
 
         // Call Gemini API
         const response = await fetch(
@@ -84,7 +128,7 @@ app.post('/api/analyze', async (req, res) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    contents: [{ parts }]
                 })
             }
         );

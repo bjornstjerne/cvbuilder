@@ -435,6 +435,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Convert PDF pages to images for visual analysis
+    async function extractImagesFromPDF(file, maxPages = 3) {
+        try {
+            // Lazy-load pdf.js if not already loaded
+            if (typeof pdfjsLib === 'undefined') {
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+                if (typeof pdfjsLib !== 'undefined') {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                }
+            }
+
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const images = [];
+            const pagesToRender = Math.min(pdf.numPages, maxPages);
+
+            for (let i = 1; i <= pagesToRender; i++) {
+                const page = await pdf.getPage(i);
+                const scale = 1.5; // Good balance between quality and size
+                const viewport = page.getViewport({ scale });
+
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                // Render page to canvas
+                await page.render({
+                    canvasContext: context,
+                    viewport: viewport
+                }).promise;
+
+                // Convert to base64 JPEG (smaller than PNG)
+                const imageData = canvas.toDataURL('image/jpeg', 0.85);
+                // Remove the data:image/jpeg;base64, prefix
+                const base64 = imageData.split(',')[1];
+                images.push({
+                    page: i,
+                    data: base64,
+                    mimeType: 'image/jpeg'
+                });
+            }
+
+            return images;
+        } catch (e) {
+            console.error("PDF Image Extraction Error:", e);
+            throw new Error("Could not render PDF as images.");
+        }
+    }
+
     function setupDragAndDrop(dropZone, fileInput, handleFile) {
         if (!dropZone) return;
 
@@ -588,16 +639,31 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('[CV Upload] Starting file extraction...');
             if (file.type === "application/pdf" || file.name.toLowerCase().endsWith('.pdf')) {
                 console.log('[CV Upload] Processing as PDF');
+                // Extract text
                 const text = await extractTextFromPDF(file);
                 cvInput.value = text;
+
+                // Also extract images for visual analysis
+                console.log('[CV Upload] Extracting images for visual analysis...');
+                try {
+                    const images = await extractImagesFromPDF(file, 3); // Max 3 pages
+                    window.cvPdfImages = images; // Store for later use
+                    console.log(`[CV Upload] Extracted ${images.length} page images`);
+                    showToast('Visual Mode Ready', `PDF rendered for visual analysis (${images.length} pages)`, 'info');
+                } catch (imgErr) {
+                    console.warn('[CV Upload] Could not extract images:', imgErr);
+                    window.cvPdfImages = null;
+                }
             } else if (file.name.toLowerCase().endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
                 console.log('[CV Upload] Processing as Word document');
                 const text = await extractTextFromDocx(file);
                 cvInput.value = text;
+                window.cvPdfImages = null; // No visual analysis for DOCX
             } else {
                 console.log('[CV Upload] Processing as plain text');
                 const text = await file.text();
                 cvInput.value = text;
+                window.cvPdfImages = null; // No visual analysis for text
             }
 
             // Trigger input event to update counters and ATS view
@@ -791,19 +857,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function analyzeWithBackend(cvText, jdText) {
-        showLoading('Analyzing your CV...');
+        const hasImages = window.cvPdfImages && window.cvPdfImages.length > 0;
+        showLoading(hasImages ? 'Analyzing your CV visually...' : 'Analyzing your CV...');
         analyzeBtn.classList.add('loading');
         analyzeBtn.disabled = true;
 
         try {
+            const requestBody = {
+                cvText,
+                jdText,
+                model: modelSelect.value
+            };
+
+            // Include images for visual analysis if available
+            if (hasImages) {
+                requestBody.cvImages = window.cvPdfImages;
+                console.log(`[Analyze] Sending ${window.cvPdfImages.length} images for visual analysis`);
+            }
+
             const response = await fetch('/api/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    cvText,
-                    jdText,
-                    model: modelSelect.value
-                })
+                body: JSON.stringify(requestBody)
             });
 
             if (!response.ok) {
@@ -857,6 +932,21 @@ document.addEventListener('DOMContentLoaded', () => {
             li.textContent = s;
             suggestionsList.appendChild(li);
         });
+
+        // Update Design Feedback (from visual analysis)
+        const designFeedbackCard = document.getElementById('design-feedback-card');
+        const designFeedbackList = document.getElementById('design-feedback-list');
+        if (data.designFeedback && data.designFeedback.length > 0) {
+            designFeedbackList.innerHTML = '';
+            data.designFeedback.forEach(feedback => {
+                const li = document.createElement('li');
+                li.textContent = feedback;
+                designFeedbackList.appendChild(li);
+            });
+            designFeedbackCard.classList.remove('hidden');
+        } else {
+            designFeedbackCard.classList.add('hidden');
+        }
 
         // Update Missing Keywords
         missingKeywordsList.innerHTML = '';
