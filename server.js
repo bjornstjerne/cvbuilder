@@ -73,9 +73,13 @@ app.post('/api/analyze', async (req, res) => {
         }
         `;
 
+        // Determine model name - strip 'models/' prefix if present
+        const selectedModel = model ? model.replace('models/', '') : 'gemini-2.0-flash-lite-001';
+        console.log('Using model:', selectedModel);
+
         // Call Gemini API
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-001:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -149,8 +153,12 @@ app.post('/api/rewrite', async (req, res) => {
         
         Return ONLY the rewritten CV text, no explanations or comments.`;
 
+        // Determine model name - strip 'models/' prefix if present
+        const selectedModelName = selectedModel.replace('models/', '');
+        console.log('Using model for rewrite:', selectedModelName);
+
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-001:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${selectedModelName}:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -181,7 +189,7 @@ app.post('/api/rewrite', async (req, res) => {
 // Generate cover letter endpoint
 app.post('/api/coverletter', async (req, res) => {
     try {
-        const { cvText, jdText } = req.body;
+        const { cvText, jdText, model } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
@@ -208,8 +216,12 @@ app.post('/api/coverletter', async (req, res) => {
         
         Return ONLY the cover letter text, no explanations. Do not include placeholder names or addresses - leave those blank for the user to fill in.`;
 
+        // Determine model name - strip 'models/' prefix if present
+        const selectedModel = model ? model.replace('models/', '') : 'gemini-2.0-flash-lite-001';
+        console.log('Using model for cover letter:', selectedModel);
+
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-001:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
