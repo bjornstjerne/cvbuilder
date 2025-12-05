@@ -1,0 +1,10 @@
+node_modules/
+.git/
+.env
+.env.local
+tests/
+playwright-report/
+test-results/
+*.log
+*.backup
+.DS_Store
