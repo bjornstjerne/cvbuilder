@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-const BASE_URL = 'https://cv-builder-43x1jl7hs-bjornstjernes-projects.vercel.app/';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 test.describe('CV Builder UI tests', () => {
     test('can analyze CV and display results', async ({ page }) => {

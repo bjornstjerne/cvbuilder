@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 test('production smoke: page loads and health ok', async ({ page, request }) => {
-    const PROD_URL = 'https://cv-builder-43x1jl7hs-bjornstjernes-projects.vercel.app/';
+    const PROD_URL = process.env.BASE_URL || 'http://localhost:3000/';
 
     // Visit production homepage
     await page.goto(PROD_URL);

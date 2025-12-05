@@ -1,9 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 test('analyze flow with mocked API response', async ({ page }) => {
-    const PROD_URL = 'https://cv-builder-43x1jl7hs-bjornstjernes-projects.vercel.app/';
-    await page.goto(PROD_URL);
-
+    const PROD_URL = process.env.BASE_URL || 'http://localhost:3000/';
     // Mock the /api/analyze response to avoid external API calls
     await page.route('**/api/analyze', route => {
         if (route.request().method() === 'POST') {
@@ -24,6 +22,8 @@ test('analyze flow with mocked API response', async ({ page }) => {
             route.continue();
         }
     });
+
+    await page.goto(PROD_URL);
 
     // Fill CV textarea
     await page.fill('#cv-input', 'Sample CV content for mock test');

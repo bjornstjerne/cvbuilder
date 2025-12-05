@@ -1,0 +1,132 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - link "CVOptima by Bjørnstjerne Bechmann" [ref=e4] [cursor=pointer]:
+      - /url: "#"
+      - img [ref=e6]
+      - generic [ref=e8]:
+        - generic [ref=e9]: CVOptima
+        - generic [ref=e10]: by Bjørnstjerne Bechmann
+    - navigation
+  - main [ref=e11]:
+    - generic [ref=e12]:
+      - heading "Unlock Your Career Potential" [level=1] [ref=e13]
+      - paragraph [ref=e14]: AI-powered analysis to optimize your CV and prepare you for the interview of your dreams.
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - heading "1. Your CV" [level=2] [ref=e19]
+            - paragraph [ref=e20]: Paste your CV text or upload a file
+          - generic [ref=e21]:
+            - generic [ref=e22] [cursor=pointer]: Upload your CV Here *
+            - generic "Drag and drop your CV PDF here or click to select" [ref=e24] [cursor=pointer]:
+              - generic [ref=e25]:
+                - img [ref=e27]
+                - generic [ref=e30]: Choose File or Drag PDF
+              - button "Upload your CV Here * Choose File or Drag PDF" [ref=e31]
+            - generic [ref=e32]: Paste CV Text
+            - textbox "Paste CV Text" [ref=e33]:
+              - /placeholder: ...or paste your CV text here
+              - text: Sample CV content for mock test
+            - generic [ref=e34]: 31 characters
+            - generic [ref=e35]:
+              - generic [ref=e36]:
+                - img [ref=e37]
+                - strong [ref=e40]: ATS View
+                - text: (See what the robot sees)
+              - checkbox [ref=e42]
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - heading "2. Job Description (Optional)" [level=2] [ref=e45]
+            - paragraph [ref=e46]: Paste the job ad or upload a file
+          - generic [ref=e47]:
+            - generic [ref=e48]: Upload Job Description (Optional)
+            - generic [ref=e49]:
+              - generic [ref=e50] [cursor=pointer]:
+                - img [ref=e52]
+                - generic [ref=e55]: Choose File
+              - button "Choose File" [ref=e56]
+            - generic [ref=e57]: Paste Job Description
+            - textbox "Paste Job Description" [ref=e58]:
+              - /placeholder: ...or paste the Job Description here
+            - generic [ref=e59]: 0 characters
+      - generic [ref=e60]:
+        - generic [ref=e61]: "AI Model:"
+        - combobox "AI Model:" [ref=e62] [cursor=pointer]:
+          - option "Gemini 2.5 Flash" [selected]
+          - option "Gemini 2.5 Flash-Lite"
+          - option "Nano Banana"
+          - option "Gemini 2.5 Pro"
+          - option "Gemini 2.0 Flash Experimental"
+        - button "Clear All" [ref=e63] [cursor=pointer]:
+          - img [ref=e65]
+          - generic [ref=e68]: Clear All
+      - button "Analyze & Match" [ref=e70] [cursor=pointer]:
+        - generic [ref=e71]: Analyze & Match
+        - img [ref=e73]
+    - generic [ref=e75]:
+      - heading "Analysis Results" [level=2] [ref=e77]
+      - generic [ref=e78]:
+        - generic "AI-powered score based on structure, action verbs, quantifiable achievements, and clarity" [ref=e79]:
+          - heading "CV Strength" [level=3] [ref=e80]
+          - generic [ref=e81]:
+            - img [ref=e82]
+            - generic [ref=e85]:
+              - generic [ref=e86]: "88"
+              - generic [ref=e87]: / 100
+          - generic [ref=e88]: Excellent
+        - generic "AI-powered match score based on keyword alignment, skills overlap, and experience relevance" [ref=e89]:
+          - heading "Job Fit Score" [level=3] [ref=e90]
+          - generic [ref=e91]:
+            - img [ref=e92]
+            - generic [ref=e95]:
+              - generic [ref=e96]: "75"
+              - generic [ref=e97]: / 100
+          - generic [ref=e98]: Excellent
+        - generic [ref=e99]:
+          - heading "Key Metrics" [level=3] [ref=e100]
+          - list [ref=e101]:
+            - listitem [ref=e102]:
+              - generic [ref=e103]: Word Count
+              - generic [ref=e104]: "6"
+            - listitem [ref=e105]:
+              - generic [ref=e106]: Action Verbs
+              - generic [ref=e107]: AI Analyzed
+            - listitem [ref=e108]:
+              - generic [ref=e109]: Readability
+              - generic [ref=e110]: AI Analyzed
+        - generic [ref=e111]:
+          - heading "Improvement Suggestions" [level=3] [ref=e112]
+          - list [ref=e113]:
+            - listitem [ref=e114]: • Use more action verbs
+            - listitem [ref=e115]: • Add measurable results
+        - generic [ref=e116]:
+          - heading "Missing Keywords" [level=3] [ref=e117]
+          - paragraph [ref=e118]: Found in JD but missing from your CV
+          - generic [ref=e119]:
+            - generic [ref=e120]: React
+            - generic [ref=e121]: Node.js
+    - generic [ref=e123]:
+      - generic [ref=e124]:
+        - heading "Smart Section Tuner" [level=2] [ref=e125]
+        - paragraph [ref=e126]: Optimize specific parts of your CV without breaking your layout.
+      - generic [ref=e128]:
+        - generic [ref=e129]:
+          - generic [ref=e130]: Header/Intro
+          - button "✨ Optimize" [ref=e131] [cursor=pointer]:
+            - generic [ref=e132]: ✨
+            - text: Optimize
+        - generic [ref=e133]: Sample CV content for mock test
+    - generic [ref=e134]:
+      - generic [ref=e135]:
+        - heading "Interview Prep" [level=2] [ref=e136]
+        - paragraph [ref=e137]: Based on your skills and experience
+      - generic [ref=e139]:
+        - generic [ref=e140]: technical
+        - paragraph [ref=e141]: Describe a complex system you designed.
+  - contentinfo [ref=e142]:
+    - paragraph [ref=e143]: © 2024 CV Optima. Built for success.
+```

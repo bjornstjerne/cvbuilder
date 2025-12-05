@@ -1,0 +1,165 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - link "CVOptima by Bjørnstjerne Bechmann" [ref=e4] [cursor=pointer]:
+      - /url: "#"
+      - img [ref=e6]
+      - generic [ref=e8]:
+        - generic [ref=e9]: CVOptima
+        - generic [ref=e10]: by Bjørnstjerne Bechmann
+    - navigation
+  - main [ref=e11]:
+    - generic [ref=e12]:
+      - heading "Unlock Your Career Potential" [level=1] [ref=e13]
+      - paragraph [ref=e14]: AI-powered analysis to optimize your CV and prepare you for the interview of your dreams.
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - heading "1. Your CV" [level=2] [ref=e19]
+            - paragraph [ref=e20]: Paste your CV text or upload a file
+          - generic [ref=e21]:
+            - generic [ref=e22] [cursor=pointer]: Upload your CV Here *
+            - generic "Drag and drop your CV PDF here or click to select" [ref=e24] [cursor=pointer]:
+              - generic [ref=e25]:
+                - img [ref=e27]
+                - generic [ref=e30]: Choose File or Drag PDF
+              - button "Upload your CV Here * Choose File or Drag PDF" [ref=e31]
+            - generic [ref=e32]: Paste CV Text
+            - textbox "Paste CV Text" [ref=e33]:
+              - /placeholder: ...or paste your CV text here
+              - text: "John Doe Software Engineer Experience: - Built web apps using React and Node.js - Led a team of 4 engineers - Improved performance by 40% Skills: JavaScript, React, Node.js"
+            - generic [ref=e34]: 174 characters
+            - generic [ref=e35]:
+              - generic [ref=e36]:
+                - img [ref=e37]
+                - strong [ref=e40]: ATS View
+                - text: (See what the robot sees)
+              - checkbox [ref=e42]
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - heading "2. Job Description (Optional)" [level=2] [ref=e45]
+            - paragraph [ref=e46]: Paste the job ad or upload a file
+          - generic [ref=e47]:
+            - generic [ref=e48]: Upload Job Description (Optional)
+            - generic [ref=e49]:
+              - generic [ref=e50] [cursor=pointer]:
+                - img [ref=e52]
+                - generic [ref=e55]: Choose File
+              - button "Choose File" [ref=e56]
+            - generic [ref=e57]: Paste Job Description
+            - textbox "Paste Job Description" [ref=e58]:
+              - /placeholder: ...or paste the Job Description here
+            - generic [ref=e59]: 0 characters
+      - generic [ref=e60]:
+        - generic [ref=e61]: "AI Model:"
+        - combobox "AI Model:" [ref=e62] [cursor=pointer]:
+          - option "Gemini 2.5 Flash" [selected]
+          - option "Gemini 2.5 Flash-Lite"
+          - option "Nano Banana"
+          - option "Gemini 2.5 Pro"
+          - option "Gemini 2.0 Flash Experimental"
+        - button "Clear All" [ref=e63] [cursor=pointer]:
+          - img [ref=e65]
+          - generic [ref=e68]: Clear All
+      - button "Analyze & Match" [ref=e70] [cursor=pointer]:
+        - generic [ref=e71]: Analyze & Match
+        - img [ref=e73]
+    - generic [ref=e75]:
+      - heading "Analysis Results" [level=2] [ref=e77]
+      - generic [ref=e78]:
+        - generic "AI-powered score based on structure, action verbs, quantifiable achievements, and clarity" [ref=e79]:
+          - heading "CV Strength" [level=3] [ref=e80]
+          - generic [ref=e81]:
+            - img [ref=e82]
+            - generic [ref=e85]:
+              - generic [ref=e86]: "75"
+              - generic [ref=e87]: / 100
+          - generic [ref=e88]: Excellent
+        - generic "AI-powered match score based on keyword alignment, skills overlap, and experience relevance" [ref=e89]:
+          - heading "Job Fit Score" [level=3] [ref=e90]
+          - generic [ref=e91]:
+            - img [ref=e92]
+            - generic [ref=e95]:
+              - generic [ref=e96]: "0"
+              - generic [ref=e97]: / 100
+          - generic [ref=e98]: Needs Work
+        - generic [ref=e99]:
+          - heading "Key Metrics" [level=3] [ref=e100]
+          - list [ref=e101]:
+            - listitem [ref=e102]:
+              - generic [ref=e103]: Word Count
+              - generic [ref=e104]: "29"
+            - listitem [ref=e105]:
+              - generic [ref=e106]: Action Verbs
+              - generic [ref=e107]: AI Analyzed
+            - listitem [ref=e108]:
+              - generic [ref=e109]: Readability
+              - generic [ref=e110]: AI Analyzed
+        - generic [ref=e111]:
+          - heading "Improvement Suggestions" [level=3] [ref=e112]
+          - list [ref=e113]:
+            - listitem [ref=e114]: "• Expand each experience bullet point with context: include company name, job title, dates of employment, and specific project details or responsibilities."
+            - listitem [ref=e115]: • Quantify more achievements, adding numbers or metrics to other accomplishments where possible (e.g., scale of web apps, number of users affected).
+            - listitem [ref=e116]: "• Add standard CV sections: 'Education' (degree, university, graduation year) and a more detailed 'Work Experience' section."
+            - listitem [ref=e117]: "• Elaborate on technical contributions: Describe the complexity of the web apps built, specific architectural decisions, or unique features implemented."
+            - listitem [ref=e118]: "• Detail leadership experience: Explain *how* the team was led (e.g., mentoring, code reviews, project management, agile methodologies)."
+            - listitem [ref=e119]: • Include a brief professional summary or objective statement at the top to provide an immediate overview of career goals and key qualifications.
+            - listitem [ref=e120]: • Consider adding a 'Projects' or 'Portfolio' section to showcase personal work or contributions to open-source if applicable.
+        - generic [ref=e121]:
+          - heading "Missing Keywords" [level=3] [ref=e122]
+          - paragraph [ref=e123]: Found in JD but missing from your CV
+          - generic [ref=e124]:
+            - generic [ref=e125]: Databases (e.g., MongoDB, PostgreSQL, MySQL)
+            - generic [ref=e126]: Cloud Platforms (e.g., AWS, Azure, GCP)
+            - generic [ref=e127]: Version Control (e.g., Git, GitHub, GitLab)
+            - generic [ref=e128]: Testing Frameworks (e.g., Jest, Enzyme, Cypress)
+            - generic [ref=e129]: CI/CD (e.g., Jenkins, GitHub Actions, GitLab CI)
+            - generic [ref=e130]: APIs (e.g., RESTful, GraphQL)
+            - generic [ref=e131]: Docker/Kubernetes
+            - generic [ref=e132]: Agile/Scrum
+            - generic [ref=e133]: Data Structures & Algorithms
+    - generic [ref=e135]:
+      - generic [ref=e136]:
+        - heading "Smart Section Tuner" [level=2] [ref=e137]
+        - paragraph [ref=e138]: Optimize specific parts of your CV without breaking your layout.
+      - generic [ref=e139]:
+        - generic [ref=e140]:
+          - generic [ref=e141]:
+            - generic [ref=e142]: Header/Intro
+            - button "✨ Optimize" [ref=e143] [cursor=pointer]:
+              - generic [ref=e144]: ✨
+              - text: Optimize
+          - generic [ref=e145]: John Doe Software Engineer
+        - generic [ref=e146]:
+          - generic [ref=e147]:
+            - generic [ref=e148]: "Experience:"
+            - button "✨ Optimize" [ref=e149] [cursor=pointer]:
+              - generic [ref=e150]: ✨
+              - text: Optimize
+          - generic [ref=e151]: "- Built web apps using React and Node.js - Led a team of 4 engineers - Improved performance by 40% Skills: JavaScript, React, Node.js"
+    - generic [ref=e152]:
+      - generic [ref=e153]:
+        - heading "Interview Prep" [level=2] [ref=e154]
+        - paragraph [ref=e155]: Based on your skills and experience
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - generic [ref=e158]: behavioral
+          - paragraph [ref=e159]: Tell me about a time you had to influence your team or stakeholders to adopt a specific technical solution. What was the challenge, and what was the outcome?
+        - generic [ref=e160]:
+          - generic [ref=e161]: technical
+          - paragraph [ref=e162]: Walk me through the architecture of a complex web application you built using React and Node.js. What were the key design decisions, and what challenges did you face?
+        - generic [ref=e163]:
+          - generic [ref=e164]: situational
+          - paragraph [ref=e165]: Imagine you've identified a critical performance bottleneck in a new feature about to launch. How would you prioritize fixing it, and what steps would you take to ensure it doesn't impact the launch timeline?
+        - generic [ref=e166]:
+          - generic [ref=e167]: behavioral
+          - paragraph [ref=e168]: Describe your leadership style when managing a team of engineers. How do you foster growth and collaboration within the team?
+        - generic [ref=e169]:
+          - generic [ref=e170]: technical
+          - paragraph [ref=e171]: Can you elaborate on the methods and tools you used to identify and achieve the 40% performance improvement you mentioned? What was the most significant change you implemented?
+  - contentinfo [ref=e172]:
+    - paragraph [ref=e173]: © 2024 CV Optima. Built for success.
+```

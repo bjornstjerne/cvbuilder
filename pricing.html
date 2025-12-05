@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Meta Tags -->
+    <title>Pricing - CV Optima | Choose Your Plan</title>
+    <meta name="description"
+        content="Flexible pricing plans for CV Optima. Start free or upgrade for unlimited AI-powered CV analyses, premium templates, and advanced features.">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cvoptima.vercel.app/pricing">
+    <meta property="og:title" content="CV Optima Pricing - Plans for Everyone">
+    <meta property="og:description" content="Free tier available. Upgrade for unlimited analyses and premium features.">
+    <meta property="og:image" content="https://cvoptima.vercel.app/og-image.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Vercel Analytics -->
+    <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+
+    <style>
+        .pricing-hero {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+
+        .pricing-hero h1 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .pricing-hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .pricing-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .toggle-label.active {
+            color: var(--accent-primary);
+        }
+
+        .billing-switch {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            background: var(--border-color);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .billing-switch.active {
+            background: var(--accent-primary);
+        }
+
+        .billing-switch::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .billing-switch.active::after {
+            transform: translateX(28px);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            max-width: 1200px;
+            margin: 0 auto 80px;
+        }
+
+        .pricing-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px var(--accent-light);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .plan-name {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .plan-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+
+        .plan-price {
+            margin-bottom: 24px;
+        }
+
+        .price-amount {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .price-currency {
+            font-size: 1.5rem;
+            font-weight: 600;
+            vertical-align: top;
+        }
+
+        .price-period {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-left: 4px;
+        }
+
+        .price-annual {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--success);
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin: 0 0 32px 0;
+            padding: 0;
+        }
+
+        .plan-features li {
+            padding: 12px 0;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .feature-icon {
+            flex-shrink: 0;
+            color: var(--accent-primary);
+            margin-top: 2px;
+        }
+
+        .feature-icon.disabled {
+            color: var(--border-color);
+        }
+
+        .plan-cta {
+            width: 100%;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .plan-cta.primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+        }
+
+        .plan-cta.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(15, 118, 110, 0.4);
+        }
+
+        .plan-cta.secondary {
+            background: white;
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .plan-cta.secondary:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .faq-section {
+            max-width: 800px;
+            margin: 80px auto 60px;
+        }
+
+        .faq-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .faq-header h2 {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .faq-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .faq-answer {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <a href="/" class="logo">
+                <span class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                    </svg>
+                </span>
+                <div class="logo-group">
+                    <span class="logo-text">CV<span class="highlight">Optima</span></span>
+                    <span class="logo-author">by Bjørnstjerne Bechmann</span>
+                </div>
+            </a>
+            <nav>
+                <a href="/" class="btn btn-secondary" style="margin-right: 12px;">Back to App</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="pricing-hero">
+                <h1>Choose Your <span class="gradient-text">Perfect Plan</span></h1>
+                <p>Start free and upgrade anytime. No credit card required for the free tier.</p>
+
+                <div class="pricing-toggle">
+                    <span class="toggle-label active" id="monthly-label">Monthly</span>
+                    <div class="billing-switch" id="billing-toggle"></div>
+                    <span class="toggle-label" id="annual-label">Annual <span style="color: var(--success);">Save
+                            25%</span></span>
+                </div>
+            </section>
+
+            <div class="pricing-grid">
+                <!-- Free Plan -->
+                <div class="pricing-card">
+                    <div class="plan-name">Free</div>
+                    <div class="plan-description">Perfect for trying out CV Optima</div>
+                    <div class="plan-price">
+                        <span class="price-currency">$</span><span class="price-amount">0</span>
+                        <span class="price-period">/ forever</span>
+                    </div>
+                    <ul class="plan-features">
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>3 CV analyses per month</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Basic feedback & scoring</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Interview questions (3)</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>1 cover letter per month</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Community support</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon disabled">✗</span>
+                            <span style="color: var(--text-secondary);">Visual design feedback</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon disabled">✗</span>
+                            <span style="color: var(--text-secondary);">Premium templates</span>
+                        </li>
+                    </ul>
+                    <button class="plan-cta secondary" onclick="window.location.href='/'">Start Free</button>
+                </div>
+
+                <!-- Pro Plan (Featured) -->
+                <div class="pricing-card featured">
+                    <div class="popular-badge">Most Popular</div>
+                    <div class="plan-name">Pro</div>
+                    <div class="plan-description">For job seekers who mean business</div>
+                    <div class="plan-price">
+                        <span class="price-currency">$</span><span class="price-amount monthly-price">9.99</span><span
+                            class="price-amount annual-price" style="display: none;">7.49</span>
+                        <span class="price-period">/ month</span>
+                        <span class="price-annual annual-price" style="display: none;">Billed annually ($89/year)</span>
+                    </div>
+                    <ul class="plan-features">
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span><strong>Unlimited CV analyses</strong></span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Advanced AI models (GPT-4)</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Visual design feedback</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Unlimited cover letters</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Download formatted PDFs</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>10+ premium CV templates</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Version history & comparison</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Priority processing</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Email support</span>
+                        </li>
+                    </ul>
+                    <button class="plan-cta primary"
+                        onclick="alert('Payment integration coming soon! For early access, contact: bjornstjerne@example.com')">Start
+                        Pro Trial</button>
+                </div>
+
+                <!-- Premium Plan -->
+                <div class="pricing-card">
+                    <div class="plan-name">Premium</div>
+                    <div class="plan-description">For career professionals & coaches</div>
+                    <div class="plan-price">
+                        <span class="price-currency">$</span><span class="price-amount monthly-price">24.99</span><span
+                            class="price-amount annual-price" style="display: none;">18.74</span>
+                        <span class="price-period">/ month</span>
+                        <span class="price-annual annual-price" style="display: none;">Billed annually
+                            ($229/year)</span>
+                    </div>
+                    <ul class="plan-features">
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span><strong>Everything in Pro, plus:</strong></span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>AI interview practice (unlimited)</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Job matching engine</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Skills gap analysis</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>1-on-1 career coaching (monthly)</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Resume makeover service</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>Priority support (24h response)</span>
+                        </li>
+                        <li>
+                            <span class="feature-icon">✓</span>
+                            <span>White-label reports (for coaches)</span>
+                        </li>
+                    </ul>
+                    <button class="plan-cta secondary"
+                        onclick="alert('Premium tier coming soon! Contact bjornstjerne@example.com for enterprise inquiries.')">Contact
+                        Sales</button>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <section class="faq-section">
+                <div class="faq-header">
+                    <h2>Frequently Asked Questions</h2>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">Can I switch plans anytime?</div>
+                    <div class="faq-answer">Yes! You can upgrade or downgrade your plan at any time. If you upgrade,
+                        you'll be charged the prorated amount for the remainder of your billing cycle.</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">Is my data secure?</div>
+                    <div class="faq-answer">Absolutely. We use industry-standard encryption and never share your CV data
+                        with third parties. Your privacy is our top priority.</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">Do you offer refunds?</div>
+                    <div class="faq-answer">Yes, we offer a 14-day money-back guarantee for all paid plans. If you're
+                        not satisfied, contact us for a full refund.</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">What payment methods do you accept?</div>
+                    <div class="faq-answer">We accept all major credit cards (Visa, MasterCard, Amex) and PayPal. All
+                        payments are processed securely through Stripe.</div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">Can I cancel anytime?</div>
+                    <div class="faq-answer">Yes, you can cancel your subscription at any time. You'll continue to have
+                        access until the end of your billing period.</div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 CV Optima. Built for success.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Billing toggle
+        const toggle = document.getElementById('billing-toggle');
+        const monthlyLabel = document.getElementById('monthly-label');
+        const annualLabel = document.getElementById('annual-label');
+        const monthlyPrices = document.querySelectorAll('.monthly-price');
+        const annualPrices = document.querySelectorAll('.annual-price');
+
+        toggle.addEventListener('click', () => {
+            toggle.classList.toggle('active');
+
+            if (toggle.classList.contains('active')) {
+                // Show annual pricing
+                monthlyLabel.classList.remove('active');
+                annualLabel.classList.add('active');
+                monthlyPrices.forEach(el => el.style.display = 'none');
+                annualPrices.forEach(el => el.style.display = 'inline');
+            } else {
+                // Show monthly pricing
+                monthlyLabel.classList.add('active');
+                annualLabel.classList.remove('active');
+                monthlyPrices.forEach(el => el.style.display = 'inline');
+                annualPrices.forEach(el => el.style.display = 'none');
+            }
+        });
+    </script>
+</body>
+
+</html>
