@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const interviewSection = document.getElementById('interview-section');
     const modelSelect = document.getElementById('model-select');
 
+    // Initialize Storage Manager
+    const cvStorage = new CVStorageManager();
+    const saveVersionBtn = document.getElementById('save-version-btn');
+    const lastSavedTime = document.getElementById('last-saved-time');
+
     // Elements to update
     const scoreValue = document.getElementById('score-value');
     const scorePath = document.getElementById('score-path');
@@ -125,29 +130,60 @@ document.addEventListener('DOMContentLoaded', () => {
         counter.textContent = `${count.toLocaleString()} character${count !== 1 ? 's' : ''}`;
     }
 
-    // Auto-Save Functionality
+    // Auto-Save Functionality (Quick Save)
     function saveToStorage() {
-        localStorage.setItem('cvText', cvInput.value);
-        localStorage.setItem('jdText', jdInput.value);
+        const cvData = {
+            cvText: cvInput.value,
+            jdText: jdInput.value,
+            timestamp: new Date().toISOString()
+        };
+        cvStorage.setCurrentCV(cvData);
+        updateLastSavedTime();
+    }
+
+    function updateLastSavedTime() {
+        const now = new Date();
+        lastSavedTime.textContent = `Saved: ${now.toLocaleTimeString()}`;
     }
 
     function loadFromStorage() {
-        const savedCv = localStorage.getItem('cvText');
-        const savedJd = localStorage.getItem('jdText');
+        const savedData = cvStorage.getCurrentCV();
 
-        if (savedCv) {
-            cvInput.value = savedCv;
-            updateCharCount(cvInput, cvCharCount);
-        }
+        if (savedData) {
+            if (savedData.cvText) {
+                cvInput.value = savedData.cvText;
+                updateCharCount(cvInput, cvCharCount);
+            }
 
-        if (savedJd) {
-            jdInput.value = savedJd;
-            updateCharCount(jdInput, jdCharCount);
-        }
+            if (savedData.jdText) {
+                jdInput.value = savedData.jdText;
+                updateCharCount(jdInput, jdCharCount);
+            }
 
-        if (savedCv || savedJd) {
-            showToast('Restored', 'Your previous work has been restored', 'info');
+            if (savedData.cvText || savedData.jdText) {
+                showToast('Restored', 'Your previous work has been restored', 'info');
+                updateLastSavedTime();
+            }
         }
+    }
+
+    // Save Version (Explicit Save)
+    if (saveVersionBtn) {
+        saveVersionBtn.addEventListener('click', () => {
+            if (!cvInput.value.trim()) {
+                showToast('Empty CV', 'Please enter some CV text first', 'error');
+                return;
+            }
+
+            const metadata = {
+                name: `Version ${new Date().toLocaleString()}`,
+                tags: ['manual-save']
+            };
+
+            cvStorage.saveCV(cvInput.value, jdInput.value, metadata);
+            showToast('Version Saved', 'A new version of your CV has been saved to history', 'success');
+            updateLastSavedTime();
+        });
     }
 
     // Attach listeners for auto-save
@@ -174,9 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('file-name').textContent = '';
                 document.getElementById('jd-file-name').textContent = '';
 
-                // Clear Local Storage
-                localStorage.removeItem('cvText');
-                localStorage.removeItem('jdText');
+                // Clear Local Storage via Manager
+                cvStorage.clearAll();
 
                 updateCharCount(cvInput, cvCharCount);
                 updateCharCount(jdInput, jdCharCount);

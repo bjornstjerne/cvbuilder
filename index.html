@@ -103,6 +103,17 @@
                                 aria-label="Paste CV Text"></textarea>
                             <div class="char-counter" id="cv-char-count">0 characters</div>
 
+                            <!-- Save Actions -->
+                            <div class="save-actions"
+                                style="margin-top: 8px; display: flex; gap: 10px; align-items: center;">
+                                <button id="save-version-btn" class="btn btn-secondary btn-sm"
+                                    style="font-size: 0.8rem; padding: 4px 12px; height: auto;">
+                                    Save Version
+                                </button>
+                                <span id="last-saved-time"
+                                    style="font-size: 0.8rem; color: var(--text-secondary);"></span>
+                            </div>
+
                             <!-- ATS View Toggle -->
                             <div class="ats-toggle-container"
                                 style="margin-top: 16px; display: flex; align-items: center; justify-content: space-between;">
@@ -593,6 +604,7 @@
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="storage-manager.js"></script>
     <script src="script.js?v=3.4"></script>
 </body>
 
