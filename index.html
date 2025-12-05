@@ -374,6 +374,172 @@
                     <!-- Populated by JS -->
                 </div>
             </section>
+
+            <!-- Pricing Section -->
+            <section id="pricing-section" class="pricing-section"
+                style="padding: 80px 0; background: linear-gradient(180deg, #F9FAFB 0%, #FFFFFF 100%);">
+                <div class="section-header" style="text-align: center; margin-bottom: 48px;">
+                    <h2 style="font-size: 2.5rem; margin-bottom: 16px;">Choose Your <span class="gradient-text">Perfect
+                            Plan</span></h2>
+                    <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto;">Start
+                        free and upgrade anytime. No credit card required for the free tier.</p>
+                </div>
+
+                <div class="pricing-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; max-width: 1100px; margin: 0 auto 60px;">
+
+                    <!-- Free Plan -->
+                    <div class="card"
+                        style="padding: 40px 32px; text-align: center; border: 2px solid var(--border-color); transition: all 0.3s;">
+                        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 12px;">Free</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 24px;">Perfect for trying out CV Optima
+                        </p>
+                        <div style="margin-bottom:24px;">
+                            <span style="font-size: 3rem; font-weight: 800; color: var(--accent-primary);">$0</span>
+                            <span style="color: var(--text-secondary);"> / forever</span>
+                        </div>
+                        <ul style="list-style: none; padding: 0; margin: 0 0 32px; text-align: left;">
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>3 CV analyses per month</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>Basic feedback & scoring</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>Interview questions (3)</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>1 cover letter per month</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px; opacity: 0.5;">
+                                <span style="color: var(--border-color); font-weight: bold;">✗</span>
+                                <span>Visual design feedback</span>
+                            </li>
+                        </ul>
+                        <button class="btn btn-secondary" style="width: 100%;"
+                            onclick="document.getElementById('cv-input').focus()">Start Free Now</button>
+                    </div>
+
+                    <!-- Pro Plan (Featured) -->
+                    <div class="card"
+                        style="padding: 40px 32px; text-align: center; border: 2px solid var(--accent-primary); box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1); position: relative; transform: scale(1.05); transition: all 0.3s;">
+                        <div
+                            style="position: absolute; top: -16px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; padding: 6px 20px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Most Popular</div>
+                        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 12px;">Pro</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 24px;">For serious job seekers</p>
+                        <div style="margin-bottom: 24px;">
+                            <span style="font-size: 3rem; font-weight: 800; color: var(--accent-primary);">$10</span>
+                            <span style="color: var(--text-secondary);"> / month</span>
+                        </div>
+                        <ul style="list-style: none; padding: 0; margin: 0 0 32px; text-align: left;">
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span><strong>Unlimited CV analyses</strong></span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>Advanced AI models (GPT-4)</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>Visual design feedback</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>Unlimited cover letters</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>10+ premium CV templates</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>Version history & comparison</span>
+                            </li>
+                        </ul>
+                        <button class="btn btn-primary"
+                            style="width: 100%; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);"
+                            onclick="alert('Pro tier coming soon! The free tier is fully functional - try it now!')">Coming
+                            Soon</button>
+                    </div>
+
+                    <!-- Premium Plan -->
+                    <div class="card"
+                        style="padding: 40px 32px; text-align: center; border: 2px solid var(--border-color); transition: all 0.3s;">
+                        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 12px;">Premium</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 24px;">For career professionals</p>
+                        <div style="margin-bottom: 24px;">
+                            <span style="font-size: 3rem; font-weight: 800; color: var(--accent-primary);">$25</span>
+                            <span style="color: var(--text-secondary);"> / month</span>
+                        </div>
+                        <ul style="list-style: none; padding: 0; margin: 0 0 32px; text-align: left;">
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span><strong>Everything in Pro, plus:</strong></span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>AI interview practice</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>Job matching engine</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>Skills gap analysis</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>1-on-1 career coaching</span>
+                            </li>
+                            <li style="padding: 10px 0; display: flex; align-items: start; gap: 12px;">
+                                <span style="color: var(--accent-primary); font-weight: bold;">✓</span>
+                                <span>Priority 24h support</span>
+                            </li>
+                        </ul>
+                        <button class="btn btn-secondary" style="width: 100%;"
+                            onclick="alert('Premium tier coming soon! Building these advanced features.')">Coming
+                            Soon</button>
+                    </div>
+                </div>
+
+                <!-- FAQ -->
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <h3 style="text-align: center; font-size: 1.75rem; margin-bottom: 32px;">Frequently Asked Questions
+                    </h3>
+                    <div style="display: grid; gap: 16px;">
+                        <div class="card" style="padding: 24px;">
+                            <h4
+                                style="font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
+                                Is my data secure?</h4>
+                            <p style="color: var(--text-secondary); line-height: 1.6;">Absolutely. We use
+                                industry-standard encryption and never share your CV data with third parties. Your
+                                privacy is our top priority.</p>
+                        </div>
+                        <div class="card" style="padding: 24px;">
+                            <h4
+                                style="font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
+                                Can I switch plans anytime?</h4>
+                            <p style="color: var(--text-secondary); line-height: 1.6;">Yes! Once premium tiers launch,
+                                you'll be able to upgrade or downgrade at any time. Currently, the free tier is
+                                available to everyone.</p>
+                        </div>
+                        <div class="card" style="padding: 24px;">
+                            <h4
+                                style="font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
+                                When will paid plans launch?</h4>
+                            <p style="color: var(--text-secondary); line-height: 1.6;">We're currently in beta. Pro and
+                                Premium tiers will launch soon. Join our free tier now to get early access!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer>
