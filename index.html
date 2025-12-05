@@ -110,8 +110,39 @@
                                     style="font-size: 0.8rem; padding: 4px 12px; height: auto;">
                                     Save Version
                                 </button>
+                                <button id="history-btn" class="btn btn-outline btn-sm"
+                                    style="font-size: 0.8rem; padding: 4px 12px; height: auto; border: 1px solid var(--border-color); background: white;">
+                                    History
+                                </button>
                                 <span id="last-saved-time"
                                     style="font-size: 0.8rem; color: var(--text-secondary);"></span>
+                            </div>
+
+                            <!-- Version History Modal -->
+                            <div id="history-modal" class="modal hidden">
+                                <div class="modal-content" role="dialog" aria-modal="true"
+                                    aria-labelledby="history-modal-title" style="max-width: 600px;">
+                                    <div class="modal-header">
+                                        <h2 id="history-modal-title">Version History</h2>
+                                        <button id="close-history-btn" class="close-btn" aria-label="Close">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18" />
+                                                <line x1="6" y1="6" x2="18" y2="18" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="history-list" class="history-list"
+                                            style="max-height: 400px; overflow-y: auto;">
+                                            <!-- History items will be inserted here -->
+                                            <div
+                                                style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                                No history available</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- ATS View Toggle -->
@@ -386,7 +417,8 @@
                 </div>
             </section>
 
-            <!-- Pricing Section -->
+            <!-- Pricing Section (Hidden for now) -->
+            <!--
             <section id="pricing-section" class="pricing-section"
                 style="padding: 80px 0; background: linear-gradient(180deg, #F9FAFB 0%, #FFFFFF 100%);">
                 <div class="section-header" style="text-align: center; margin-bottom: 48px;">
@@ -399,7 +431,6 @@
                 <div class="pricing-grid"
                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; max-width: 1100px; margin: 0 auto 60px;">
 
-                    <!-- Free Plan -->
                     <div class="card"
                         style="padding: 40px 32px; text-align: center; border: 2px solid var(--border-color); transition: all 0.3s;">
                         <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 12px;">Free</h3>
@@ -435,7 +466,6 @@
                             onclick="document.getElementById('cv-input').focus()">Start Free Now</button>
                     </div>
 
-                    <!-- Pro Plan (Featured) -->
                     <div class="card"
                         style="padding: 40px 32px; text-align: center; border: 2px solid var(--accent-primary); box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1); position: relative; transform: scale(1.05); transition: all 0.3s;">
                         <div
@@ -479,7 +509,6 @@
                             Soon</button>
                     </div>
 
-                    <!-- Premium Plan -->
                     <div class="card"
                         style="padding: 40px 32px; text-align: center; border: 2px solid var(--border-color); transition: all 0.3s;">
                         <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 12px;">Premium</h3>
@@ -520,7 +549,6 @@
                     </div>
                 </div>
 
-                <!-- FAQ -->
                 <div style="max-width: 800px; margin: 0 auto;">
                     <h3 style="text-align: center; font-size: 1.75rem; margin-bottom: 32px;">Frequently Asked Questions
                     </h3>
@@ -551,6 +579,7 @@
                     </div>
                 </div>
             </section>
+            -->
         </main>
 
         <footer>

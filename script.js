@@ -9,7 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Storage Manager
     const cvStorage = new CVStorageManager();
     const saveVersionBtn = document.getElementById('save-version-btn');
+    const historyBtn = document.getElementById('history-btn');
     const lastSavedTime = document.getElementById('last-saved-time');
+
+    // History Modal Elements
+    const historyModal = document.getElementById('history-modal');
+    const closeHistoryBtn = document.getElementById('close-history-btn');
+    const historyList = document.getElementById('history-list');
 
     // Elements to update
     const scoreValue = document.getElementById('score-value');
@@ -184,6 +190,120 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Version Saved', 'A new version of your CV has been saved to history', 'success');
             updateLastSavedTime();
         });
+    }
+
+    // History UI Logic
+    if (historyBtn && historyModal) {
+        // Open History Modal
+        historyBtn.addEventListener('click', () => {
+            renderHistoryList();
+            historyModal.classList.remove('hidden');
+            historyModal.classList.add('flex');
+        });
+
+        // Close History Modal
+        closeHistoryBtn.addEventListener('click', () => {
+            historyModal.classList.add('hidden');
+            historyModal.classList.remove('flex');
+        });
+
+        // Close on outside click
+        historyModal.addEventListener('click', (e) => {
+            if (e.target === historyModal) {
+                historyModal.classList.add('hidden');
+                historyModal.classList.remove('flex');
+            }
+        });
+    }
+
+    function renderHistoryList() {
+        if (!historyList) return;
+
+        const cvs = cvStorage.getSavedCVs();
+        historyList.innerHTML = '';
+
+        if (cvs.length === 0) {
+            historyList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">No saved versions found. Click "Save Version" to create one.</div>';
+            return;
+        }
+
+        cvs.forEach(cv => {
+            // Get full history for this CV to show versions
+            const versions = cvStorage.getVersionHistory(cv.id);
+
+            versions.forEach((version, index) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.style.cssText = 'padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;';
+
+                const date = new Date(version.timestamp).toLocaleString();
+                const isCurrent = index === 0 && cv === cvs[0]; // Simplified check
+
+                item.innerHTML = `
+                    <div class="history-info">
+                        <div style="font-weight: 600; color: var(--text-primary);">${version.name || 'Untitled Version'}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">${date} • ${version.cvText.length} chars</div>
+                    </div>
+                    <div class="history-actions" style="display: flex; gap: 8px;">
+                        <button class="btn-restore btn btn-sm btn-outline" data-id="${cv.id}" data-index="${index}" style="padding: 4px 12px; font-size: 0.8rem;">Restore</button>
+                        <button class="btn-delete btn btn-sm btn-ghost" data-id="${cv.id}" data-index="${index}" style="padding: 4px 8px; color: var(--error-color);" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </div>
+                `;
+
+                historyList.appendChild(item);
+            });
+        });
+
+        // Attach event listeners to buttons
+        document.querySelectorAll('.btn-restore').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const cvId = e.currentTarget.dataset.id;
+                const index = parseInt(e.currentTarget.dataset.index);
+                restoreVersion(cvId, index);
+            });
+        });
+
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const cvId = e.currentTarget.dataset.id;
+                deleteVersion(cvId);
+            });
+        });
+    }
+
+    function restoreVersion(cvId, index) {
+        const history = cvStorage.getVersionHistory(cvId);
+        if (history && history[index]) {
+            const version = history[index];
+
+            if (confirm('Restore this version? Current unsaved changes will be replaced.')) {
+                cvInput.value = version.cvText || '';
+                jdInput.value = version.jdText || '';
+
+                updateCharCount(cvInput, cvCharCount);
+                updateCharCount(jdInput, jdCharCount);
+
+                // Update current active CV
+                cvStorage.setCurrentCV(version);
+                updateLastSavedTime();
+
+                showToast('Version Restored', 'CV content has been restored successfully', 'success');
+
+                // Close modal
+                historyModal.classList.add('hidden');
+                historyModal.classList.remove('flex');
+            }
+        }
+    }
+
+    function deleteVersion(cvId) {
+        if (confirm('Are you sure you want to delete this version history?')) {
+            cvStorage.deleteCV(cvId);
+            renderHistoryList(); // Refresh list
+            showToast('Deleted', 'Version history deleted', 'info');
+        }
     }
 
     // Attach listeners for auto-save
