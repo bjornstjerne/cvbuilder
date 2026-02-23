@@ -516,6 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const name = model.name.toLowerCase();
                         // Exclude experimental, preview, dated versions, TTS, and test models
                         if (name.includes('experimental') ||
+                            name.includes('exp') ||
                             name.includes('preview') ||
                             name.includes('banana') ||
                             name.includes('1206') ||
@@ -1571,4 +1572,156 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 100);
         });
     }
+    // --- Authentication Logic ---
+    const authManager = new AuthManager();
+    const loginBtn = document.getElementById('login-btn');
+    const authModal = document.getElementById('auth-modal');
+    const closeAuthBtn = document.getElementById('close-auth-btn');
+    const googleSignInBtn = document.getElementById('google-signin-btn');
+    const emailAuthForm = document.getElementById('email-auth-form');
+    const toggleAuthMode = document.getElementById('toggle-auth-mode');
+    const authModalTitle = document.getElementById('auth-modal-title');
+    const emailAuthBtn = emailAuthForm.querySelector('button');
+
+    const userProfile = document.getElementById('user-profile');
+    const userName = document.getElementById('user-name');
+    const userAvatar = document.getElementById('user-avatar');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    let isSignUpMode = false;
+
+    // Toggle between Login and Sign Up
+    if (toggleAuthMode) {
+        toggleAuthMode.addEventListener('click', (e) => {
+            e.preventDefault();
+            isSignUpMode = !isSignUpMode;
+
+            if (isSignUpMode) {
+                authModalTitle.textContent = "Create Account";
+                emailAuthBtn.textContent = "Sign Up with Email";
+                toggleAuthMode.textContent = "Sign In";
+                // Add name field if not present
+                if (!document.getElementById('auth-name-group')) {
+                    const nameGroup = document.createElement('div');
+                    nameGroup.className = 'form-group';
+                    nameGroup.id = 'auth-name-group';
+                    nameGroup.innerHTML = `
+                        <label for="auth-name" class="input-label">Full Name</label>
+                        <input type="text" id="auth-name" placeholder="John Doe" class="input-field" required>
+                    `;
+                    emailAuthForm.insertBefore(nameGroup, emailAuthForm.firstChild);
+                }
+            } else {
+                authModalTitle.textContent = "Welcome Back";
+                emailAuthBtn.textContent = "Sign In with Email";
+                toggleAuthMode.textContent = "Sign Up";
+                const nameGroup = document.getElementById('auth-name-group');
+                if (nameGroup) nameGroup.remove();
+            }
+        });
+    }
+
+    // Open Auth Modal
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            authModal.classList.remove('hidden');
+            authModal.style.display = 'flex';
+        });
+    }
+
+    // Close Auth Modal
+    if (closeAuthBtn) {
+        closeAuthBtn.addEventListener('click', () => {
+            authModal.classList.add('hidden');
+            authModal.style.display = 'none';
+        });
+    }
+
+    // Google Sign In
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', async () => {
+            try {
+                googleSignInBtn.disabled = true;
+                const originalText = googleSignInBtn.innerHTML;
+                googleSignInBtn.innerHTML = 'Signing in...';
+                await authManager.signInWithGoogle();
+                authModal.classList.add('hidden');
+                authModal.style.display = 'none';
+                showToast('Welcome!', 'Successfully signed in with Google', 'success');
+                googleSignInBtn.innerHTML = originalText;
+            } catch (error) {
+                showToast('Error', error.message, 'error');
+            } finally {
+                googleSignInBtn.disabled = false;
+            }
+        });
+    }
+
+    // Email Sign In / Sign Up
+    if (emailAuthForm) {
+        emailAuthForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const btn = emailAuthForm.querySelector('button');
+
+            try {
+                btn.disabled = true;
+                if (isSignUpMode) {
+                    const name = document.getElementById('auth-name').value;
+                    btn.textContent = 'Creating account...';
+                    await authManager.signUpWithEmail(email, password, name);
+                    showToast('Welcome!', 'Account created successfully', 'success');
+                } else {
+                    btn.textContent = 'Signing in...';
+                    await authManager.signInWithEmail(email, password);
+                    showToast('Welcome!', 'Successfully signed in', 'success');
+                }
+                authModal.classList.add('hidden');
+                authModal.style.display = 'none';
+            } catch (error) {
+                showToast('Error', error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = isSignUpMode ? 'Sign Up with Email' : 'Sign In with Email';
+            }
+        });
+    }
+
+    // Sign Out
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            await authManager.signOut();
+            showToast('Signed Out', 'See you next time!', 'info');
+        });
+    }
+
+    // Update UI on Auth State Change
+    authManager.onAuthStateChanged((user) => {
+        if (user) {
+            // Update storage manager with user ID
+            cvStorage.setUserId(user.uid);
+
+            loginBtn.classList.add('hidden');
+            userProfile.classList.remove('hidden');
+            userProfile.style.display = 'flex';
+            userName.textContent = user.displayName || user.email;
+            userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=random`;
+
+            // Reload UI components that depend on storage
+            if (typeof updateHistoryList === 'function') updateHistoryList();
+            if (typeof updateTunerSections === 'function') updateTunerSections();
+        } else {
+            // Reset to guest storage
+            cvStorage.setUserId(null);
+
+            loginBtn.classList.remove('hidden');
+            userProfile.classList.add('hidden');
+            userProfile.style.display = 'none';
+
+            // Reload UI components
+            if (typeof updateHistoryList === 'function') updateHistoryList();
+        }
+    });
+
 });

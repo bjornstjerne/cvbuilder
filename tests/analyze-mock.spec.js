@@ -38,18 +38,15 @@ test('analyze flow with mocked API response', async ({ page }) => {
     expect(respBody.score).toBe(88);
 
     // Allow UI a moment to update from the response
-    await page.waitForTimeout(700);
+    await page.waitForTimeout(2000);
 
     // Wait for mocked response to be processed and UI to update
-    await page.waitForSelector('#score-value');
-    const score = await page.$eval('#score-value', el => Number(el.textContent));
-    // UI animation may update over time, so ensure final value is the mocked score or close
-    expect(score === 88 || score > 0).toBeTruthy();
+    // Use web-first assertion with auto-retry to handle animation
+    await expect(page.locator('#score-value')).toHaveText('88', { timeout: 10000 });
 
     // Check that suggestions and missing keywords rendered
-    await page.waitForSelector('#suggestions-list li');
-    const suggestions = await page.$$eval('#suggestions-list li', els => els.map(e => e.textContent));
-    expect(suggestions.length).toBeGreaterThan(0);
-    const missing = await page.$$eval('#missing-keywords-list .keyword-tag', els => els.map(e => e.textContent));
-    expect(missing).toContain('React');
+    await expect(page.locator('#suggestions-list li')).toHaveCount(2);
+    await expect(page.locator('#suggestions-list li').first()).toContainText('Use more action verbs');
+
+    await expect(page.locator('#missing-keywords-list .keyword-tag')).toContainText(['React', 'Node.js']);
 });

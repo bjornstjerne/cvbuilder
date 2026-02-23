@@ -63,8 +63,9 @@ body {
     max-width: 1280px;
     margin: 0 auto;
     padding: 0 var(--spacing-md);
-    display: flex;
-    flex-direction: column;
+    /* display: flex; Removed to fix width issues */
+    /* flex-direction: column; */
+    display: block;
     min-height: 100vh;
 }
 
@@ -77,6 +78,11 @@ body {
     margin-bottom: 40px;
     border-bottom: 1px solid var(--border-color);
     background: transparent;
+    gap: 20px;
+}
+
+.header-actions {
+    margin-left: auto;
 }
 
 .logo {
@@ -995,11 +1001,160 @@ footer {
     padding: 0 24px 24px 24px;
 }
 
-.modal-footer {
-    padding: 16px 24px 24px 24px;
-    border-top: 1px solid var(--border-color);
+/* Auth Modal Refinement - Two Column Premium */
+.modal-content {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 900px;
+    padding: 0;
+    box-shadow: var(--shadow-lg);
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+@media (min-width: 768px) {
+    .modal-content {
+        flex-direction: row;
+        height: 600px;
+    }
+}
+
+/* Left Pane (Branding) */
+.modal-left {
+    padding: 40px;
+    background: linear-gradient(135deg, var(--bg-color), #f0fdfa);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid var(--border-color);
+    flex: 1;
+}
+
+.modal-left h2 {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.auth-description {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* Right Pane (Form) */
+.modal-right {
+    padding: 40px;
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    background-color: white;
+}
+
+/* Close Button (Absolute in Right Pane) */
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+}
+
+.btn-google {
+    width: 100%;
+    background-color: white;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    margin-bottom: 24px;
+    justify-content: center;
+    height: 48px;
+    font-weight: 500;
+    border-radius: 8px;
+    font-family: var(--font-main);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-google:hover {
+    background-color: #f8f9fa;
+    border-color: #dadce0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.divider-line {
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+.divider-text {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: var(--font-main);
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.input-field:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.modal-footer {
+    display: none;
 }
 
 .cover-letter-text {
@@ -1403,4 +1558,34 @@ footer {
     background: var(--bg-color);
     border-radius: 12px;
     border: 2px dashed var(--border-color);
+}
+
+/* Force Input Cards Side-by-Side on Desktop */
+@media (min-width: 1024px) {
+    .app-container {
+        display: block !important;
+        width: 100% !important;
+        max-width: 1280px !important;
+    }
+
+    main {
+        width: 1232px !important;
+        /* Force exact production width (1280 - 48 padding) */
+        max-width: none !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+
+    .input-section {
+        width: 1232px !important;
+        max-width: none !important;
+    }
+
+    .input-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        width: 100% !important;
+        max-width: none !important;
+        gap: 32px !important;
+    }
 }

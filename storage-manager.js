@@ -4,10 +4,65 @@
  */
 
 class CVStorageManager {
-    constructor() {
-        this.STORAGE_PREFIX = 'cvoptima_';
-        this.MAX_VERSIONS = 10; // Maximum versions to keep per CV
-        this.MAX_SAVED_CVS = 5; // Maximum number of different CVs to save
+    constructor(uid = null) {
+        this.uid = uid;
+        this.updatePrefix();
+        this.MAX_VERSIONS = 10;
+        this.MAX_SAVED_CVS = 5;
+    }
+
+    updatePrefix() {
+        this.STORAGE_PREFIX = this.uid ? `cvoptima_${this.uid}_` : 'cvoptima_guest_';
+    }
+
+    setUserId(uid) {
+        // If we are switching from guest to a real user, we might want to migrate
+        const oldPrefix = this.STORAGE_PREFIX;
+        this.uid = uid;
+        this.updatePrefix();
+
+        if (uid && oldPrefix === 'cvoptima_guest_') {
+            this.migrateGuestData(oldPrefix);
+        }
+    }
+
+    // Migrate data from guest storage to user storage
+    migrateGuestData(oldPrefix) {
+        console.log("Migrating guest data to user storage...");
+        const guestCvListKey = `${oldPrefix}cv_list`;
+        const guestCvList = JSON.parse(localStorage.getItem(guestCvListKey) || '[]');
+
+        if (guestCvList.length === 0) return;
+
+        // Move the list
+        const userCvListKey = `${this.STORAGE_PREFIX}cv_list`;
+        const existingUserList = JSON.parse(localStorage.getItem(userCvListKey) || '[]');
+
+        // Merge lists (simple prepend for guest items)
+        const combinedList = [...guestCvList, ...existingUserList].slice(0, this.MAX_SAVED_CVS);
+        localStorage.setItem(userCvListKey, JSON.stringify(combinedList));
+
+        // Move each CV's history
+        guestCvList.forEach(cv => {
+            const guestHistoryKey = `${oldPrefix}history_${cv.id}`;
+            const history = localStorage.getItem(guestHistoryKey);
+            if (history) {
+                localStorage.setItem(`${this.STORAGE_PREFIX}history_${cv.id}`, history);
+                localStorage.removeItem(guestHistoryKey);
+            }
+        });
+
+        // Move current CV quick access
+        const guestCurrentKey = `${oldPrefix}current`;
+        const current = localStorage.getItem(guestCurrentKey);
+        if (current) {
+            localStorage.setItem(`${this.STORAGE_PREFIX}current`, current);
+            localStorage.removeItem(guestCurrentKey);
+        }
+
+        // Clear guest list
+        localStorage.removeItem(guestCvListKey);
+        console.log("Migration complete.");
     }
 
     // Save a new CV version with metadata

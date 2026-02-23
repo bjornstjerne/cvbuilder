@@ -44,21 +44,31 @@
     <div class="app-container">
         <header class="main-header">
             <a href="#" class="logo">
-                <span class="logo-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path
-                            d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                    </svg>
-                </span>
-                <div class="logo-group">
-                    <span class="logo-text">CV<span class="highlight">Optima</span></span>
-                    <span class="logo-author">by Bjørnstjerne Bechmann</span>
+                <div class="logo">
+                    <span class="logo-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                        </svg>
+                    </span>
+                    <div class="logo-group">
+                        <span class="logo-text">CV<span class="highlight">Optima</span></span>
+                        <span class="logo-author">by Bjørnstjerne Bechmann</span>
+                    </div>
                 </div>
-            </a>
-            <nav>
-                <!-- Theme toggle can go here if needed, or just keep it simple -->
-            </nav>
+                <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
+                    <div id="user-profile" class="hidden" style="display: flex; align-items: center; gap: 10px;">
+                        <span id="user-name"
+                            style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);"></span>
+                        <img id="user-avatar" src="" alt="Profile"
+                            style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent-primary);">
+                        <button id="logout-btn" class="btn btn-sm btn-ghost"
+                            style="padding: 4px 8px; font-size: 0.8rem;">Sign Out</button>
+                    </div>
+                    <button id="login-btn" class="btn btn-primary btn-sm">Sign In</button>
+                </div>
+
         </header>
 
         <main>
@@ -68,6 +78,7 @@
                     dreams.</p>
             </section>
 
+
             <section class="input-section">
                 <div class="input-grid">
                     <div class="card input-card">
@@ -76,7 +87,8 @@
                             <p>Paste your CV text or upload a file</p>
                         </div>
                         <div class="input-area">
-                            <label for="cv-file-upload" class="input-label" style="cursor: pointer;">Upload your CV Here
+                            <label for="cv-file-upload" class="input-label" style="cursor: pointer;">Upload your CV
+                                Here
                                 <span style="color: #ef4444;">*</span></label>
                             <div class="file-upload-container">
                                 <div id="cv-drop-zone" class="drop-zone" tabindex="0"
@@ -174,7 +186,8 @@
                                     Extracted Text</h4>
                                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
                                     This is exactly how an Applicant Tracking System (ATS) reads your CV.
-                                    If this looks scrambled or missing sections, your CV formatting might be rejecting
+                                    If this looks scrambled or missing sections, your CV formatting might be
+                                    rejecting
                                     automated screening.
                                 </p>
                                 <pre id="ats-raw-text"
@@ -251,6 +264,7 @@
                 </div>
 
             </section>
+
 
             <section id="results-section" class="results-section">
                 <div class="section-header">
@@ -416,6 +430,7 @@
                     <!-- Populated by JS -->
                 </div>
             </section>
+
 
             <!-- Pricing Section (Hidden for now) -->
             <!--
@@ -632,9 +647,79 @@
             </div>
         </div>
     </div>
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+            <!-- Left Pane: Branding -->
+            <div class="modal-left">
+                <h2 id="auth-modal-title">Welcome Back</h2>
+                <p class="auth-description">Sign in to save your CVs, track your progress, and access your optimized
+                    documents from any device.</p>
+            </div>
+
+            <!-- Right Pane: Form -->
+            <div class="modal-right">
+                <button id="close-auth-btn" class="close-btn" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+
+                <button id="google-signin-btn" class="btn btn-google">
+                    <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                            fill="#4285F4" />
+                        <path
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                            fill="#34A853" />
+                        <path
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                            fill="#FBBC05" />
+                        <path
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                            fill="#EA4335" />
+                    </svg>
+                    Sign in with Google
+                </button>
+
+                <div class="auth-divider">
+                    <div class="divider-line"></div>
+                    <span class="divider-text">OR</span>
+                    <div class="divider-line"></div>
+                </div>
+
+                <form id="email-auth-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="auth-email" class="input-label">Email address</label>
+                        <input type="email" id="auth-email" placeholder="name@example.com" class="input-field" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="auth-password" class="input-label">Password</label>
+                        <input type="password" id="auth-password" placeholder="••••••••" class="input-field" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Sign In
+                        with Email</button>
+                </form>
+
+                <p style="margin-top: 16px; font-size: 0.85rem; color: var(--text-secondary);">
+                    Don't have an account? <a href="#" id="toggle-auth-mode"
+                        style="color: var(--accent-primary); text-decoration: none; font-weight: 600;">Sign Up</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="storage-manager.js"></script>
-    <script src="script.js?v=3.4"></script>
+    <script src="auth-manager.js"></script>
+    <script src="script.js?v=3.5"></script>
 </body>
 
 </html>

@@ -16,24 +16,144 @@ const crypto = require('crypto');
 const requestCache = new Map();
 const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 
+// Claude model configuration
+// Using claude-opus-4-1 which is the latest and most capable model available
+const CLAUDE_MODEL = 'claude-opus-4-1-20250805';
+
+// Request throttling to prevent rate limits
+const requestQueue = [];
+let isProcessing = false;
+const REQUEST_DELAY = 1000; // 1 second between API calls
+
+async function queuedAPICall(callFn) {
+    return new Promise((resolve, reject) => {
+        requestQueue.push({ callFn, resolve, reject });
+        processQueue();
+    });
+}
+
+async function processQueue() {
+    if (isProcessing || requestQueue.length === 0) return;
+
+    isProcessing = true;
+    const { callFn, resolve, reject } = requestQueue.shift();
+
+    try {
+        const result = await callFn();
+        resolve(result);
+    } catch (error) {
+        reject(error);
+    } finally {
+        setTimeout(() => {
+            isProcessing = false;
+            processQueue();
+        }, REQUEST_DELAY);
+    }
+}
+
+// Helper function to call Claude API
+async function callClaudeAPI(prompt, imageData, apiKey, isVisualAnalysis) {
+    console.log(`\n=== Claude API Call ===`);
+    console.log(`Model: ${CLAUDE_MODEL}`);
+    console.log(`Prompt length: ${prompt.length} chars`);
+
+    // Note: Claude API doesn't easily support image uploads in free tier
+    // We focus on text analysis
+    if (isVisualAnalysis && imageData && imageData.length > 0) {
+        console.log('Note: Using text analysis only (Claude API requires more setup for images)');
+    }
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            console.log(`Attempt ${attempt + 1}/3...`);
+            
+            const response = await fetch(
+                'https://api.anthropic.com/v1/messages',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01'
+                    },
+                    body: JSON.stringify({
+                        model: CLAUDE_MODEL,
+                        max_tokens: 2000,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ]
+                    })
+                }
+            );
+
+            console.log(`Response status: ${response.status}`);
+            const data = await response.json();
+            console.log(`Response received:`, JSON.stringify(data).substring(0, 200));
+
+            if (data.error) {
+                const errorMsg = data.error.message || JSON.stringify(data.error);
+                console.log(`API Error: ${errorMsg}`);
+
+                // Rate limit error
+                if (data.error.type === 'rate_limit_error' || errorMsg.includes('rate limit')) {
+                    console.log(`Rate limited, retrying...`);
+                    if (attempt < 2) {
+                        const waitTime = Math.pow(2, attempt + 1) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        continue;
+                    }
+                    throw new Error('Rate limited. Please try again later.');
+                }
+
+                // Authentication error
+                if (data.error.type === 'authentication_error') {
+                    throw new Error('Invalid API key. Please check your Claude API key.');
+                }
+
+                // Other error
+                throw new Error(data.error.message);
+            }
+
+            // Success!
+            console.log('Claude API call successful');
+            return {
+                data: data,
+                usedModel: CLAUDE_MODEL
+            };
+
+        } catch (error) {
+            if (attempt < 2) {
+                const waitTime = Math.pow(2, attempt + 1) * 1000;
+                console.log(`Error on attempt ${attempt + 1}. Retrying in ${waitTime}ms: ${error.message}`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+            } else {
+                throw error;
+            }
+        }
+    }
+}
+
 // Analyze endpoint
 app.post('/api/analyze', async (req, res) => {
     try {
         const { cvText, jdText, model, cvImages } = req.body;
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env.CLAUDE_API_KEY;
 
         if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured on server' });
+            return res.status(500).json({ error: 'Claude API key not configured on server' });
         }
 
         if (!cvText && (!cvImages || cvImages.length === 0)) {
             return res.status(400).json({ error: 'CV text or images are required' });
         }
 
-        // Create a cache key based on inputs (exclude images for cache to avoid huge keys)
+        // Create a cache key based on inputs
         const cacheKey = crypto
             .createHash('md5')
-            .update(JSON.stringify({ cvText, jdText, model, hasImages: !!cvImages }))
+            .update(JSON.stringify({ cvText, jdText, hasImages: !!cvImages }))
             .digest('hex');
 
         // Check cache
@@ -46,118 +166,59 @@ app.post('/api/analyze', async (req, res) => {
             requestCache.delete(cacheKey);
         }
 
-        // Build the prompt - adjusted for visual analysis
+        // Build the prompt - optimized for rate limits (shorter to save tokens)
         const isVisualAnalysis = cvImages && cvImages.length > 0;
-        const prompt = isVisualAnalysis
-            ? `You are an expert CV analyzer and career coach. Analyze the CV document shown in the image(s).
-            
-Look at BOTH the content AND the visual design:
-- Assess the layout, formatting, and visual hierarchy
-- Comment on readability and professional appearance
-- Note any design issues (cluttered, too sparse, poor font choices)
-- Evaluate the photo if present (professional quality, appropriate)
-- Analyze the actual content: skills, experience, achievements
-
-${jdText ? `JOB DESCRIPTION:\n${jdText.substring(0, 5000)}` : ""}
-
-${cvText ? `EXTRACTED TEXT (for reference):\n${cvText.substring(0, 5000)}` : ""}
-
-Provide a response in strict JSON format:
-{
-    "score": <number 0-100>,
-    "jdScore": <number 0-100, or 0 if no JD>,
-    "summary": "<brief summary of the candidate>",
-    "strengths": ["<strength 1>", "<strength 2>", ...],
-    "weaknesses": ["<weakness 1>", "<weakness 2>", ...],
-    "suggestions": ["<specific actionable suggestion 1>", "<suggestion 2>", ...],
-    "designFeedback": ["<visual/design feedback 1>", "<design feedback 2>", ...],
-    "missingKeywords": ["<keyword 1>", "<keyword 2>", ...],
-    "interviewQuestions": [
-        {"type": "behavioral", "text": "<question 1>"},
-        {"type": "technical", "text": "<question 2>"},
-        {"type": "situational", "text": "<question 3>"}
-    ]
-}`
-            : `You are an expert CV analyzer and career coach. Analyze the following CV text and Job Description (if provided).
+        const prompt = `Analyze this CV and provide ratings/feedback in JSON.
         
-CV TEXT:
-${cvText.substring(0, 10000)}
+${jdText ? `Job Description (first 1500 chars):\n${jdText.substring(0, 1500)}\n\n` : ""}
+CV Text (first 2000 chars):\n${cvText.substring(0, 2000)}
 
-JOB DESCRIPTION:
-${jdText ? jdText.substring(0, 5000) : "Not provided"}
-
-Provide a response in strict JSON format with the following structure:
+Provide ONLY this JSON (no other text):
 {
-    "score": <number 0-100>,
-    "jdScore": <number 0-100, or 0 if no JD>,
-    "summary": "<brief summary of the candidate>",
-    "strengths": ["<strength 1>", "<strength 2>", ...],
-    "weaknesses": ["<weakness 1>", "<weakness 2>", ...],
-    "suggestions": ["<specific actionable suggestion 1>", "<suggestion 2>", ...],
-    "missingKeywords": ["<keyword 1>", "<keyword 2>", ...],
-    "interviewQuestions": [
-        {"type": "behavioral", "text": "<question 1>"},
-        {"type": "technical", "text": "<question 2>"},
-        {"type": "situational", "text": "<question 3>"}
-    ]
+  "score": <0-100>,
+  "jdScore": <0-100 or 0>,
+  "summary": "<brief>",
+  "strengths": ["<s1>", "<s2>"],
+  "weaknesses": ["<w1>", "<w2>"],
+  "suggestions": ["<suggest1>", "<suggest2>"],
+  "missingKeywords": ["<kw1>", "<kw2>"],
+  "interviewQuestions": [{"type":"behavioral","text":"<q1>"}]
 }`;
 
-        // Determine model name - strip 'models/' prefix if present
-        const selectedModel = model ? model.replace('models/', '') : 'gemini-2.0-flash-lite-001';
-        console.log('Using model:', selectedModel, isVisualAnalysis ? '(with images)' : '(text only)');
+        // Determine model name
+        console.log('Attempting to analyze with Claude');
 
-        // Build request parts - text + optional images
-        const parts = [{ text: prompt }];
-
-        if (isVisualAnalysis) {
-            cvImages.forEach((img, idx) => {
-                parts.push({
-                    inline_data: {
-                        mime_type: img.mimeType || 'image/jpeg',
-                        data: img.data
-                    }
-                });
-                console.log(`Added image ${idx + 1} (page ${img.page})`);
-            });
-        }
-
-        // Call Gemini API
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts }]
-                })
-            }
-        );
-
-        const data = await response.json();
-
-        if (data.error) {
-            // Check for rate limit
-            if (data.error.code === 429 || data.error.message.includes('Resource exhausted')) {
+        // Call Claude API
+        let result;
+        try {
+            result = await callClaudeAPI(prompt, cvImages, apiKey, isVisualAnalysis);
+        } catch (error) {
+            // Rate limit errors
+            if (error.message && error.message.includes('rate limit')) {
                 return res.status(429).json({
                     error: 'Rate limit exceeded',
-                    message: 'The AI service is currently busy. Please try again in a minute.'
+                    message: 'Claude API rate limit hit. Please wait a minute and try again.'
                 });
             }
-            throw new Error(data.error.message);
+            throw error;
         }
 
-        const rawText = data.candidates[0].content.parts[0].text;
+        const data = result.data;
+        console.log(`Analysis completed using model: ${result.usedModel}`);
+
+        // Claude returns content[0].text
+        const rawText = data.content[0].text;
         // Clean up markdown code blocks if present
         const jsonText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-        const result = JSON.parse(jsonText);
+        const analysisResult = JSON.parse(jsonText);
 
         // Store in cache
         requestCache.set(cacheKey, {
             timestamp: Date.now(),
-            data: result
+            data: analysisResult
         });
 
-        res.json(result);
+        res.json(analysisResult);
 
     } catch (error) {
         console.error('Analysis error:', error);
@@ -172,8 +233,7 @@ Provide a response in strict JSON format with the following structure:
 app.post('/api/rewrite', async (req, res) => {
     try {
         const { cvText, model } = req.body;
-        const apiKey = process.env.GEMINI_API_KEY;
-        const selectedModel = model || 'models/gemini-2.0-flash-lite-001';
+        const apiKey = process.env.CLAUDE_API_KEY;
 
         if (!apiKey) {
             return res.status(500).json({ error: 'API key not configured on server' });
@@ -197,17 +257,21 @@ app.post('/api/rewrite', async (req, res) => {
         
         Return ONLY the rewritten CV text, no explanations or comments.`;
 
-        // Determine model name - strip 'models/' prefix if present
-        const selectedModelName = selectedModel.replace('models/', '');
-        console.log('Using model for rewrite:', selectedModelName);
+        console.log('Using Claude for rewrite');
 
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${selectedModelName}:generateContent?key=${apiKey}`,
+            'https://api.anthropic.com/v1/messages',
             {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    model: CLAUDE_MODEL,
+                    max_tokens: 2000,
+                    messages: [{ role: 'user', content: prompt }]
                 })
             }
         );
@@ -218,7 +282,7 @@ app.post('/api/rewrite', async (req, res) => {
             throw new Error(data.error.message);
         }
 
-        const rewrittenCV = data.candidates[0].content.parts[0].text;
+        const rewrittenCV = data.content[0].text;
         res.json({ rewrittenCV });
 
     } catch (error) {
@@ -234,7 +298,7 @@ app.post('/api/rewrite', async (req, res) => {
 app.post('/api/coverletter', async (req, res) => {
     try {
         const { cvText, jdText, model } = req.body;
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env.CLAUDE_API_KEY;
 
         if (!apiKey) {
             return res.status(500).json({ error: 'API key not configured on server' });
@@ -260,17 +324,21 @@ app.post('/api/coverletter', async (req, res) => {
         
         Return ONLY the cover letter text, no explanations. Do not include placeholder names or addresses - leave those blank for the user to fill in.`;
 
-        // Determine model name - strip 'models/' prefix if present
-        const selectedModel = model ? model.replace('models/', '') : 'gemini-2.0-flash-lite-001';
-        console.log('Using model for cover letter:', selectedModel);
+        console.log('Using Claude for cover letter');
 
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`,
+            'https://api.anthropic.com/v1/messages',
             {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    model: CLAUDE_MODEL,
+                    max_tokens: 1500,
+                    messages: [{ role: 'user', content: prompt }]
                 })
             }
         );
@@ -281,7 +349,7 @@ app.post('/api/coverletter', async (req, res) => {
             throw new Error(data.error.message);
         }
 
-        const coverLetter = data.candidates[0].content.parts[0].text;
+        const coverLetter = data.content[0].text;
         res.json({ coverLetter });
 
     } catch (error) {
@@ -301,24 +369,12 @@ app.get('/api/health', (req, res) => {
 // List Models endpoint
 app.get('/api/models', async (req, res) => {
     try {
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured' });
-        }
-
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
-        );
-        const data = await response.json();
-
-        // Filter for Gemini models that support content generation
-        const models = data.models
-            .filter(m => m.name.includes('gemini') && m.supportedGenerationMethods.includes('generateContent'))
-            .map(m => ({
-                name: m.name,
-                displayName: m.displayName,
-                description: m.description
-            }));
+        // Return Claude model information
+        const models = [{
+            name: CLAUDE_MODEL,
+            displayName: 'Claude 3.5 Sonnet',
+            description: 'Best quality model for CV analysis'
+        }];
 
         res.json({ models });
     } catch (error) {
@@ -331,11 +387,7 @@ app.get('/api/models', async (req, res) => {
 app.post('/api/generate-bullet', async (req, res) => {
     try {
         const { keyword, model } = req.body;
-        const apiKey = process.env.GEMINI_API_KEY;
-        // Use the model passed from frontend or default
-        // Note: The frontend passes 'models/gemini-...' but the API URL needs just the name or we handle it.
-        // Let's stick to a hardcoded reliable model for this simple task or use the one from config.
-        const modelName = 'gemini-2.0-flash-lite-001';
+        const apiKey = process.env.CLAUDE_API_KEY;
 
         if (!apiKey) {
             return res.status(500).json({ error: 'API key not configured on server' });
@@ -348,12 +400,18 @@ app.post('/api/generate-bullet', async (req, res) => {
         `;
 
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+            'https://api.anthropic.com/v1/messages',
             {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    model: CLAUDE_MODEL,
+                    max_tokens: 300,
+                    messages: [{ role: 'user', content: prompt }]
                 })
             }
         );
@@ -364,7 +422,7 @@ app.post('/api/generate-bullet', async (req, res) => {
             throw new Error(data.error.message);
         }
 
-        const bulletPoint = data.candidates[0].content.parts[0].text.trim();
+        const bulletPoint = data.content[0].text.trim();
         res.json({ bulletPoint });
 
     } catch (error) {
@@ -380,8 +438,7 @@ app.post('/api/generate-bullet', async (req, res) => {
 app.post('/api/optimize-section', async (req, res) => {
     try {
         const { sectionText, sectionType, model } = req.body;
-        const apiKey = process.env.GEMINI_API_KEY;
-        const modelName = 'gemini-2.0-flash-lite-001';
+        const apiKey = process.env.CLAUDE_API_KEY;
 
         if (!apiKey) {
             return res.status(500).json({ error: 'API key not configured on server' });
@@ -402,12 +459,18 @@ app.post('/api/optimize-section', async (req, res) => {
         `;
 
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+            'https://api.anthropic.com/v1/messages',
             {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    model: CLAUDE_MODEL,
+                    max_tokens: 1000,
+                    messages: [{ role: 'user', content: prompt }]
                 })
             }
         );
@@ -418,7 +481,7 @@ app.post('/api/optimize-section', async (req, res) => {
             throw new Error(data.error.message);
         }
 
-        const optimizedText = data.candidates[0].content.parts[0].text.trim();
+        const optimizedText = data.content[0].text.trim();
         res.json({ optimizedText });
 
     } catch (error) {
