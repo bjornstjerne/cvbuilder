@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
         const { cvText: rawCvText, jdText: rawJdText, model: rawModel } = req.body || {};
         const cvText = sanitizeInput(rawCvText, 10000);
         const jdText = sanitizeInput(rawJdText, 5000);
-        const model = sanitizeInput(rawModel, 100) || 'claude-3-5-haiku-20241022';
+        const model = sanitizeInput(rawModel, 100) || 'claude-3-haiku-20240307';
 
         if (!cvText) {
             return res.status(400).json({ error: 'CV text is required' });

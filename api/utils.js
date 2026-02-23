@@ -46,7 +46,7 @@ function checkRateLimit(req, res, limit = 60, windowSec = 60) {
  * @param {number} maxTokens - Max output tokens
  * @returns {Promise<string>} - The text response
  */
-async function callClaude(prompt, model = 'claude-3-5-haiku-20241022', maxTokens = 2048) {
+async function callClaude(prompt, model = 'claude-3-haiku-20240307', maxTokens = 2048) {
     const apiKey = process.env.CLAUDE_API_KEY;
     if (!apiKey) {
         throw new Error('CLAUDE_API_KEY not configured on server');

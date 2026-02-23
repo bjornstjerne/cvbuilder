@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
 
         const { keyword: rawKeyword, model: rawModel } = req.body || {};
         const keyword = sanitizeInput(rawKeyword, 200);
-        const model = sanitizeInput(rawModel, 100) || 'claude-3-5-haiku-20241022';
+        const model = sanitizeInput(rawModel, 100) || 'claude-3-haiku-20240307';
 
         const prompt = `Write a single, strong, professional resume bullet point demonstrating the skill: "${keyword}".
 Use action verbs. Do not include any introductory text. Just the bullet point.

@@ -3,19 +3,9 @@ const { checkRateLimit } = require('./utils');
 // Claude models available - hardcoded since Anthropic doesn't have a simple public list endpoint
 const CLAUDE_MODELS = [
     {
-        name: 'claude-3-5-haiku-20241022',
-        displayName: 'Claude 3.5 Haiku (Fastest)',
-        description: 'Best speed and cost for everyday tasks'
-    },
-    {
-        name: 'claude-3-5-sonnet-20241022',
-        displayName: 'Claude 3.5 Sonnet (Balanced)',
-        description: 'Best combination of speed and intelligence'
-    },
-    {
-        name: 'claude-3-opus-20240229',
-        displayName: 'Claude 3 Opus (Most Powerful)',
-        description: 'Most intelligent model for complex tasks'
+        name: 'claude-3-haiku-20240307',
+        displayName: 'Claude 3 Haiku',
+        description: 'Fast and capable model for daily tasks'
     }
 ];
 

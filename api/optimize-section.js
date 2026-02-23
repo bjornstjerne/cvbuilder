@@ -20,7 +20,7 @@ module.exports = async (req, res) => {
         const { sectionText: rawSectionText, sectionTitle: rawSectionTitle, model: rawModel } = req.body || {};
         const sectionText = sanitizeInput(rawSectionText, 2000);
         const sectionTitle = sanitizeInput(rawSectionTitle, 200);
-        const model = sanitizeInput(rawModel, 100) || 'claude-3-5-haiku-20241022';
+        const model = sanitizeInput(rawModel, 100) || 'claude-3-haiku-20240307';
 
         const prompt = `You are an expert CV writer. Optimize the following CV section titled "${sectionTitle}".
 
