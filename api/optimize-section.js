@@ -1,4 +1,4 @@
-const { sanitizeInput, checkRateLimit } = require('./utils');
+const { sanitizeInput, checkRateLimit, callClaude } = require('./utils');
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -17,14 +17,10 @@ module.exports = async (req, res) => {
     try {
         if (!checkRateLimit(req, res, 60, 60)) return;
 
-        const { sectionText: rawSectionText, sectionTitle: rawSectionTitle } = req.body || {};
+        const { sectionText: rawSectionText, sectionTitle: rawSectionTitle, model: rawModel } = req.body || {};
         const sectionText = sanitizeInput(rawSectionText, 2000);
         const sectionTitle = sanitizeInput(rawSectionTitle, 200);
-        const apiKey = process.env.GEMINI_API_KEY;
-
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured on server' });
-        }
+        const model = sanitizeInput(rawModel, 100) || 'claude-3-5-haiku-20241022';
 
         const prompt = `You are an expert CV writer. Optimize the following CV section titled "${sectionTitle}".
 
@@ -40,25 +36,8 @@ Improve it by:
 
 Return ONLY the optimized text, no explanations or comments.`;
 
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-001:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
-            }
-        );
-
-        const data = await response.json();
-
-        if (data.error) {
-            throw new Error(data.error.message);
-        }
-
-        const optimizedText = data.candidates[0].content.parts[0].text.trim();
-        res.json({ optimizedText });
+        const optimizedText = await callClaude(prompt, model);
+        res.json({ optimizedText: optimizedText.trim() });
 
     } catch (error) {
         console.error('Optimization error:', error);

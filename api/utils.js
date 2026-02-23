@@ -39,4 +39,46 @@ function checkRateLimit(req, res, limit = 60, windowSec = 60) {
     }
 }
 
-module.exports = { sanitizeInput, checkRateLimit };
+/**
+ * Call the Anthropic Claude API with a prompt.
+ * @param {string} prompt - The user prompt
+ * @param {string} model - Claude model ID (e.g. 'claude-3-5-haiku-20241022')
+ * @param {number} maxTokens - Max output tokens
+ * @returns {Promise<string>} - The text response
+ */
+async function callClaude(prompt, model = 'claude-3-5-haiku-20241022', maxTokens = 2048) {
+    const apiKey = process.env.CLAUDE_API_KEY;
+    if (!apiKey) {
+        throw new Error('CLAUDE_API_KEY not configured on server');
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model: model,
+            max_tokens: maxTokens,
+            messages: [
+                { role: 'user', content: prompt }
+            ]
+        })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+        throw new Error(data.error.message || 'Claude API error');
+    }
+
+    if (!data.content || !data.content[0] || !data.content[0].text) {
+        throw new Error('Unexpected response format from Claude API');
+    }
+
+    return data.content[0].text;
+}
+
+module.exports = { sanitizeInput, checkRateLimit, callClaude };

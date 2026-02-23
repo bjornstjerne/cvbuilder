@@ -1,5 +1,24 @@
 const { checkRateLimit } = require('./utils');
 
+// Claude models available - hardcoded since Anthropic doesn't have a simple public list endpoint
+const CLAUDE_MODELS = [
+    {
+        name: 'claude-3-5-haiku-20241022',
+        displayName: 'Claude 3.5 Haiku (Fastest)',
+        description: 'Best speed and cost for everyday tasks'
+    },
+    {
+        name: 'claude-3-5-sonnet-20241022',
+        displayName: 'Claude 3.5 Sonnet (Balanced)',
+        description: 'Best combination of speed and intelligence'
+    },
+    {
+        name: 'claude-3-opus-20240229',
+        displayName: 'Claude 3 Opus (Most Powerful)',
+        description: 'Most intelligent model for complex tasks'
+    }
+];
+
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -12,25 +31,13 @@ module.exports = async (req, res) => {
 
     try {
         if (!checkRateLimit(req, res, 120, 60)) return;
-        const apiKey = process.env.GEMINI_API_KEY;
+
+        const apiKey = process.env.CLAUDE_API_KEY;
         if (!apiKey) {
             return res.status(500).json({ error: 'API key not configured' });
         }
 
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
-        );
-        const data = await response.json();
-
-        const models = data.models
-            .filter(m => m.name.includes('gemini') && m.supportedGenerationMethods.includes('generateContent'))
-            .map(m => ({
-                name: m.name,
-                displayName: m.displayName,
-                description: m.description
-            }));
-
-        res.json({ models });
+        res.json({ models: CLAUDE_MODELS });
     } catch (error) {
         console.error('Error listing models:', error);
         res.status(500).json({ error: 'Failed to fetch models' });

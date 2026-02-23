@@ -501,62 +501,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 if (data.models && data.models.length > 0) {
                     modelSelect.innerHTML = '';
-
-                    // Curated list of recommended models (in priority order)
-                    const curatedModelPatterns = [
-                        'gemini-2.5-flash',      // Best default - newest Flash tier
-                        'gemini-2.5-pro',        // Premium option
-                        'gemini-2.0-flash',      // Stable fallback (not lite)
-                        'gemini-2.0-flash-lite', // Free-tier friendly
-                        'gemini-1.5-pro'         // Legacy option
-                    ];
-
-                    // Filter to only stable, recommended models
-                    const recommendedModels = data.models.filter(model => {
-                        const name = model.name.toLowerCase();
-                        // Exclude experimental, preview, dated versions, TTS, and test models
-                        if (name.includes('experimental') ||
-                            name.includes('exp') ||
-                            name.includes('preview') ||
-                            name.includes('banana') ||
-                            name.includes('1206') ||
-                            name.includes('tts') ||
-                            name.includes('robotics') ||
-                            /\d{2}-\d{2}/.test(name) ||  // Excludes date patterns like 05-20
-                            /-\d{3}$/.test(name)) {      // Excludes versioned like -001
-                            return false;
-                        }
-                        // Check if model matches any of our curated patterns
-                        return curatedModelPatterns.some(pattern => name.includes(pattern));
-                    });
-
-                    // Sort by curated priority order
-                    const sortedModels = recommendedModels.sort((a, b) => {
-                        const aName = a.name.toLowerCase();
-                        const bName = b.name.toLowerCase();
-                        const aIndex = curatedModelPatterns.findIndex(p => aName.includes(p));
-                        const bIndex = curatedModelPatterns.findIndex(p => bName.includes(p));
-                        return aIndex - bIndex;
-                    });
-
-                    // Limit to top 5 models
-                    const topModels = sortedModels.slice(0, 5);
-
-                    topModels.forEach((model, index) => {
+                    data.models.forEach((model, index) => {
                         const option = document.createElement('option');
                         option.value = model.name;
                         option.textContent = model.displayName;
-                        // Select the first model in the sorted list by default
-                        if (index === 0) {
-                            option.selected = true;
-                        }
+                        if (index === 0) option.selected = true;
                         modelSelect.appendChild(option);
                     });
                 }
             }
         } catch (error) {
             console.error('Failed to fetch models:', error);
-            // Fallback to hardcoded options in HTML
+            // Fallback to hardcoded Claude options in HTML
         }
     }
     fetchModels();

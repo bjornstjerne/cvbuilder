@@ -1,4 +1,4 @@
-const { sanitizeInput, checkRateLimit } = require('./utils');
+const { sanitizeInput, checkRateLimit, callClaude } = require('./utils');
 
 module.exports = async (req, res) => {
     // Enable CORS
@@ -22,14 +22,10 @@ module.exports = async (req, res) => {
     try {
         if (!checkRateLimit(req, res, 60, 60)) return;
 
-        const { cvText: rawCvText, jdText: rawJdText } = req.body || {};
+        const { cvText: rawCvText, jdText: rawJdText, model: rawModel } = req.body || {};
         const cvText = sanitizeInput(rawCvText, 10000);
         const jdText = sanitizeInput(rawJdText, 5000);
-        const apiKey = process.env.GEMINI_API_KEY;
-
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured on server' });
-        }
+        const model = sanitizeInput(rawModel, 100) || 'claude-3-5-haiku-20241022';
 
         if (!cvText) {
             return res.status(400).json({ error: 'CV text is required' });
@@ -37,38 +33,21 @@ module.exports = async (req, res) => {
 
         const prompt = `You are an expert cover letter writer. Based on the following CV${jdText ? ' and job description' : ''}, write a compelling, professional cover letter.
         
-        The cover letter should:
-        - Be 3-4 paragraphs
-        - Highlight relevant experience from the CV
-        - Show enthusiasm for the role
-        - Be professional but personable
-        - Include a strong opening and closing
-        
-        CV TEXT:
-        ${cvText.substring(0, 10000)}
-        
-        ${jdText ? `JOB DESCRIPTION:\n${jdText.substring(0, 5000)}` : ''}
-        
-        Return ONLY the cover letter text, no explanations. Do not include placeholder names or addresses - leave those blank for the user to fill in.`;
+The cover letter should:
+- Be 3-4 paragraphs
+- Highlight relevant experience from the CV
+- Show enthusiasm for the role
+- Be professional but personable
+- Include a strong opening and closing
 
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-001:generateContent?key=${apiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
-            }
-        );
+CV TEXT:
+${cvText.substring(0, 10000)}
 
-        const data = await response.json();
+${jdText ? `JOB DESCRIPTION:\n${jdText.substring(0, 5000)}` : ''}
 
-        if (data.error) {
-            throw new Error(data.error.message);
-        }
+Return ONLY the cover letter text, no explanations. Do not include placeholder names or addresses - leave those blank for the user to fill in.`;
 
-        const coverLetter = data.candidates[0].content.parts[0].text;
+        const coverLetter = await callClaude(prompt, model);
         res.json({ coverLetter });
 
     } catch (error) {
