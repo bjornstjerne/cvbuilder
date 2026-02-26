@@ -81,4 +81,74 @@ async function callClaude(prompt, model = 'claude-3-haiku-20240307', maxTokens =
     return data.content[0].text;
 }
 
-module.exports = { sanitizeInput, checkRateLimit, callClaude };
+function parseClaudeJson(text) {
+    const raw = String(text || '').trim();
+    if (!raw) {
+        throw new Error('Empty response from model');
+    }
+
+    // Fast path for well-formed JSON.
+    try {
+        return JSON.parse(raw);
+    } catch (_) {
+        // Continue with extraction fallback.
+    }
+
+    // Remove common markdown fence wrappers.
+    const withoutFences = raw
+        .replace(/```json/gi, '```')
+        .replace(/```/g, '')
+        .trim();
+
+    try {
+        return JSON.parse(withoutFences);
+    } catch (_) {
+        // Continue with object extraction fallback.
+    }
+
+    // Find the first balanced JSON object in the response.
+    const start = withoutFences.indexOf('{');
+    if (start === -1) {
+        throw new Error('No JSON object found in model response');
+    }
+
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let i = start; i < withoutFences.length; i += 1) {
+        const ch = withoutFences[i];
+
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (ch === '\\') {
+                escaped = true;
+            } else if (ch === '"') {
+                inString = false;
+            }
+            continue;
+        }
+
+        if (ch === '"') {
+            inString = true;
+            continue;
+        }
+
+        if (ch === '{') depth += 1;
+        if (ch === '}') depth -= 1;
+
+        if (depth === 0) {
+            const candidate = withoutFences.slice(start, i + 1);
+            try {
+                return JSON.parse(candidate);
+            } catch (_) {
+                break;
+            }
+        }
+    }
+
+    throw new Error('Could not parse JSON from model response');
+}
+
+module.exports = { sanitizeInput, checkRateLimit, callClaude, parseClaudeJson };

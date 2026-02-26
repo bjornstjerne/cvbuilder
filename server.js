@@ -66,7 +66,7 @@ async function callClaudeAPI(prompt, imageData, apiKey, isVisualAnalysis) {
     for (let attempt = 0; attempt < 3; attempt++) {
         try {
             console.log(`Attempt ${attempt + 1}/3...`);
-            
+
             const response = await fetch(
                 'https://api.anthropic.com/v1/messages',
                 {

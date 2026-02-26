@@ -34,7 +34,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=4.5">
 
     <!-- Vercel Analytics -->
     <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
@@ -57,17 +57,18 @@
                         <span class="logo-author">by Bjørnstjerne Bechmann</span>
                     </div>
                 </div>
-                <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
-                    <div id="user-profile" class="hidden" style="display: flex; align-items: center; gap: 10px;">
-                        <span id="user-name"
-                            style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);"></span>
-                        <img id="user-avatar" src="" alt="Profile"
-                            style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent-primary);">
-                        <button id="logout-btn" class="btn btn-sm btn-ghost"
-                            style="padding: 4px 8px; font-size: 0.8rem;">Sign Out</button>
-                    </div>
-                    <button id="login-btn" class="btn btn-primary btn-sm">Sign In</button>
+            </a>
+            <div class="header-actions" style="display: flex; align-items: center; gap: 16px;">
+                <div id="user-profile" class="hidden" style="display: flex; align-items: center; gap: 10px;">
+                    <span id="user-name"
+                        style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);"></span>
+                    <img id="user-avatar" src="" alt="Profile"
+                        style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent-primary);">
+                    <button id="logout-btn" class="btn btn-sm btn-ghost"
+                        style="padding: 4px 8px; font-size: 0.8rem;">Sign Out</button>
                 </div>
+                <button id="login-btn" class="btn btn-primary btn-sm">Sign In</button>
+            </div>
 
         </header>
 
@@ -109,6 +110,8 @@
                                         class="file-input-hidden">
                                     <span id="file-name" class="file-name"></span>
                                 </div>
+                                <p class="upload-hint">Supported: PDF, DOCX, TXT (max 10MB). Legacy `.doc` may fail.
+                                </p>
                             </div>
                             <label for="cv-input" class="input-label">Paste CV Text</label>
                             <textarea id="cv-input" placeholder="...or paste your CV text here" spellcheck="false"
@@ -217,7 +220,8 @@
                                     </span>
                                     <span class="btn-text">Choose File</span>
                                 </label>
-                                <input type="file" id="jd-file-upload" accept=".pdf" class="file-input-hidden">
+                                <input type="file" id="jd-file-upload" accept=".pdf,.docx,.doc,.txt"
+                                    class="file-input-hidden">
                                 <span id="jd-file-name" class="file-name"></span>
                             </div>
                             <label for="jd-input" class="input-label">Paste Job Description</label>
@@ -603,7 +607,10 @@
         <div id="cover-letter-modal" class="modal hidden">
             <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="cover-letter-modal-title">
                 <div class="modal-header">
-                    <h2 id="cover-letter-modal-title">Your Cover Letter</h2>
+                    <div>
+                        <h2 id="cover-letter-modal-title">Your Cover Letter</h2>
+                        <p class="subtitle" style="margin: 6px 0 0 0;">Review it, then copy or download as PDF.</p>
+                    </div>
                     <button id="close-modal-btn" class="close-btn" aria-label="Close">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -628,7 +635,7 @@
                                 <line x1="12" x2="12" y1="15" y2="3" />
                             </svg>
                         </span>
-                        <span class="btn-text">Download PDF</span>
+                        <span class="btn-text">Download as PDF</span>
                     </button>
                     <button id="copy-cover-letter-btn" class="btn btn-primary">
                         <span class="btn-icon">
@@ -648,22 +655,17 @@
     <!-- Auth Modal -->
     <div id="auth-modal" class="modal hidden">
         <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
-            <!-- Left Pane: Branding -->
-            <div class="modal-left">
-                <h2 id="auth-modal-title">Welcome Back</h2>
-                <p class="auth-description">Sign in to save your CVs, track your progress, and access your optimized
-                    documents from any device.</p>
-            </div>
+            <button id="close-auth-btn" class="close-btn" aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
 
-            <!-- Right Pane: Form -->
-            <div class="modal-right">
-                <button id="close-auth-btn" class="close-btn" aria-label="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
+            <div class="auth-shell">
+                <h2 id="auth-modal-title">Sign in</h2>
+                <p class="auth-description">Save your CV drafts and access them from any device.</p>
 
                 <button id="google-signin-btn" class="btn btn-google">
                     <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -680,12 +682,12 @@
                             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                             fill="#EA4335" />
                     </svg>
-                    Sign in with Google
+                    Continue with Google
                 </button>
 
                 <div class="auth-divider">
                     <div class="divider-line"></div>
-                    <span class="divider-text">OR</span>
+                    <span class="divider-text">or continue with email</span>
                     <div class="divider-line"></div>
                 </div>
 
@@ -698,13 +700,12 @@
                         <label for="auth-password" class="input-label">Password</label>
                         <input type="password" id="auth-password" placeholder="••••••••" class="input-field" required>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Sign In
-                        with Email</button>
+                    <button type="submit" class="btn btn-primary auth-submit-btn">Sign in with email</button>
                 </form>
 
-                <p style="margin-top: 16px; font-size: 0.85rem; color: var(--text-secondary);">
-                    Don't have an account? <a href="#" id="toggle-auth-mode"
-                        style="color: var(--accent-primary); text-decoration: none; font-weight: 600;">Sign Up</a>
+                <p class="auth-switch-line">
+                    <span id="auth-switch-label">Don't have an account?</span>
+                    <a href="#" id="toggle-auth-mode">Create account</a>
                 </p>
             </div>
         </div>
@@ -715,9 +716,16 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="storage-manager.js"></script>
-    <script src="auth-manager.js"></script>
-    <script src="script.js?v=3.5"></script>
+    <script src="storage-manager.js?v=4.5"></script>
+    <script src="auth-manager.js?v=4.5"></script>
+    <!-- Feature Modules -->
+    <script src="js/ui-helpers.js?v=4.5"></script>
+    <script src="js/api.js?v=4.5"></script>
+    <script src="js/file-processor.js?v=4.5"></script>
+    <script src="js/analyzer.js?v=4.5"></script>
+    
+    <!-- Main Script -->
+    <script src="script.js?v=4.5"></script>
 </body>
 
 </html>

@@ -24,8 +24,9 @@ class AuthManager {
     constructor() {
         this.user = null;
         this.listeners = [];
-        this.auth = firebase.auth();
-        this.mockMode = firebaseConfig.apiKey === "YOUR_API_KEY";
+        const hasFirebaseSdk = typeof firebase !== 'undefined';
+        this.mockMode = !hasFirebaseSdk || firebaseConfig.apiKey === "YOUR_API_KEY";
+        this.auth = this.mockMode ? null : firebase.auth();
 
         if (this.mockMode) {
             console.warn('Firebase config not found. Running in MOCK MODE.');

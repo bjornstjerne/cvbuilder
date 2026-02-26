@@ -1,4 +1,67 @@
-const { sanitizeInput, checkRateLimit, callClaude } = require('./utils');
+const { sanitizeInput, checkRateLimit, callClaude, parseClaudeJson } = require('./utils');
+
+function normalizeSuggestion(item) {
+    if (!item) return null;
+
+    if (typeof item === 'string') {
+        return {
+            title: 'Improve this area',
+            recommendation: item,
+            evidence: 'No direct evidence snippet was returned.',
+            priority: 'medium'
+        };
+    }
+
+    if (typeof item !== 'object') return null;
+
+    const title = sanitizeInput(item.title || item.issue || 'Improve this area', 120);
+    const recommendation = sanitizeInput(item.recommendation || item.action || item.text || '', 400);
+    const evidence = sanitizeInput(item.evidence || item.cvEvidence || item.snippet || '', 240);
+    const rawPriority = sanitizeInput(item.priority || 'medium', 20).toLowerCase();
+    const priority = ['high', 'medium', 'low'].includes(rawPriority) ? rawPriority : 'medium';
+
+    if (!recommendation) return null;
+
+    return {
+        title,
+        recommendation,
+        evidence: evidence || 'No direct evidence snippet was returned.',
+        priority
+    };
+}
+
+function normalizeResult(result) {
+    const normalized = { ...result };
+    const incomingSuggestions = Array.isArray(result.suggestions) ? result.suggestions : [];
+    const incomingKeywords = Array.isArray(result.missingKeywords) ? result.missingKeywords : [];
+    const incomingQuestions = Array.isArray(result.interviewQuestions) ? result.interviewQuestions : [];
+
+    const toScore = (value) => {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return 0;
+        return Math.max(0, Math.min(100, Math.round(n)));
+    };
+
+    normalized.suggestions = incomingSuggestions
+        .map(normalizeSuggestion)
+        .filter(Boolean)
+        .slice(0, 8);
+
+    normalized.score = toScore(result.score);
+    normalized.jdScore = toScore(result.jdScore);
+    normalized.missingKeywords = incomingKeywords
+        .map((kw) => sanitizeInput(kw, 64))
+        .filter(Boolean)
+        .slice(0, 25);
+    normalized.interviewQuestions = incomingQuestions
+        .map((q) => ({
+            type: sanitizeInput((q && q.type) || 'general', 40).toLowerCase() || 'general',
+            text: sanitizeInput((q && q.text) || '', 280)
+        }))
+        .filter((q) => q.text);
+
+    return normalized;
+}
 
 module.exports = async (req, res) => {
     // Enable CORS
@@ -47,7 +110,14 @@ Provide a response in strict JSON format with the following structure:
     "summary": "<brief summary of the candidate>",
     "strengths": ["<strength 1>", "<strength 2>", ...],
     "weaknesses": ["<weakness 1>", "<weakness 2>", ...],
-    "suggestions": ["<specific actionable suggestion 1>", "<suggestion 2>", ...],
+    "suggestions": [
+        {
+            "title": "<short issue label>",
+            "recommendation": "<specific actionable change>",
+            "evidence": "<short direct snippet from CV or JD that supports this recommendation>",
+            "priority": "<high|medium|low>"
+        }
+    ],
     "missingKeywords": ["<keyword 1>", "<keyword 2>", ...],
     "interviewQuestions": [
         {"type": "behavioral", "text": "<question 1>"},
@@ -56,11 +126,17 @@ Provide a response in strict JSON format with the following structure:
     ]
 }
 
+Rules:
+- Provide 3 to 6 suggestions.
+- Evidence must quote a concrete phrase or line from the provided CV or JD.
+- Keep evidence under 160 characters.
+- Prioritize suggestions by impact on interview and ATS outcomes.
+
 Respond with ONLY the JSON object, no markdown fences or additional text.`;
 
         const rawText = await callClaude(prompt, model);
-        const jsonText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-        const result = JSON.parse(jsonText);
+        const parsed = parseClaudeJson(rawText);
+        const result = normalizeResult(parsed);
 
         res.json(result);
 

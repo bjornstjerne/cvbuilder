@@ -23,11 +23,13 @@ module.exports = async (req, res) => {
         if (!checkRateLimit(req, res, 120, 60)) return;
 
         const apiKey = process.env.CLAUDE_API_KEY;
-        if (!apiKey) {
-            return res.status(500).json({ error: 'API key not configured' });
-        }
-
-        res.json({ models: CLAUDE_MODELS });
+        res.json({
+            models: CLAUDE_MODELS,
+            ready: Boolean(apiKey),
+            message: apiKey
+                ? 'Model list loaded'
+                : 'API key not configured. Model list available, but analysis requests will fail until configured.'
+        });
     } catch (error) {
         console.error('Error listing models:', error);
         res.status(500).json({ error: 'Failed to fetch models' });

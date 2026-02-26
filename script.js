@@ -44,97 +44,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const coverLetterText = document.getElementById('cover-letter-text');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const copyCoverLetterBtn = document.getElementById('copy-cover-letter-btn');
+    const tunerSection = document.getElementById('tuner-section');
+    const tunerContainer = document.getElementById('tuner-container');
+    let latestCoverLetter = '';
 
-    // Action verbs list for analysis
-    const actionVerbs = [
-        'led', 'managed', 'developed', 'created', 'implemented', 'designed', 'orchestrated',
-        'spearheaded', 'built', 'engineered', 'optimized', 'resolved', 'improved', 'increased',
-        'decreased', 'saved', 'negotiated', 'launched', 'initiated', 'coordinated', 'mentored',
-        'analyzed', 'collaborated', 'achieved', 'awarded', 'generated', 'delivered'
-    ];
+    // Action verbs and stopwords moved to js/analyzer.js
+    // UI Helpers moved to js/ui-helpers.js
 
-    // Common stopwords to ignore in JD analysis
-    const stopWords = new Set(['a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'over', 'after', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'shall', 'should', 'can', 'could', 'may', 'might', 'must', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'experience', 'work', 'job', 'role', 'team', 'skills', 'ability', 'knowledge', 'years', 'degree', 'qualification', 'responsible', 'duties', 'requirements', 'preferred', 'plus', 'strong', 'excellent', 'good', 'communication', 'looking', 'seeking']);
-
-    // Utility Functions for UI Feedback
-    function showLoading(message = 'Processing...') {
-        const overlay = document.createElement('div');
-        overlay.className = 'loading-overlay';
-        overlay.id = 'loading-overlay';
-        overlay.innerHTML = `
-            <div class="spinner"></div>
-            <div class="loading-text">${message}</div>
-        `;
-        document.body.appendChild(overlay);
-    }
-
-    function hideLoading() {
-        const overlay = document.getElementById('loading-overlay');
-        if (overlay) overlay.remove();
-    }
-
-    function showToast(title, message, type = 'info') {
-        let container = document.querySelector('.toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.className = 'toast-container';
-            document.body.appendChild(container);
-        }
-
-        const icons = {
-            success: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-            error: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>',
-            info: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>'
-        };
-
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `
-            <div class="toast-icon">${icons[type]}</div>
-            <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                <div class="toast-message">${message}</div>
-            </div>
-        `;
-        container.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.animation = 'slideIn 0.3s ease reverse';
-            setTimeout(() => toast.remove(), 300);
-        }, 4000);
-    }
-
-    // File Validation
-    function validateFile(file) {
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        const allowedTypes = ['application/pdf', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
-        const allowedExtensions = ['.pdf', '.txt', '.docx', '.doc'];
-
-        if (file.size > maxSize) {
-            showToast('File Too Large', 'Please upload a file smaller than 10MB', 'error');
-            return false;
-        }
-
-        // Check by MIME type OR file extension (fallback for systems that don't report MIME types correctly)
-        const hasValidType = allowedTypes.includes(file.type);
-        const hasValidExtension = allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-
-        if (!hasValidType && !hasValidExtension) {
-            showToast('Invalid File Type', 'Please upload a PDF, Word, or text file', 'error');
-            return false;
-        }
-
-        return true;
-    }
+    // File Validation moved to js/file-processor.js
 
     // Character Counter
     const cvCharCount = document.getElementById('cv-char-count');
     const jdCharCount = document.getElementById('jd-char-count');
+    let storageWarningShown = false;
 
-    function updateCharCount(textarea, counter) {
-        const count = textarea.value.length;
-        counter.textContent = `${count.toLocaleString()} character${count !== 1 ? 's' : ''}`;
-    }
+    // Character Counting logic moved to js/ui-helpers.js
 
     // Auto-Save Functionality (Quick Save)
     function saveToStorage() {
@@ -147,6 +71,24 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLastSavedTime();
     }
 
+    function safeSaveToStorage() {
+        try {
+            saveToStorage();
+            return true;
+        } catch (error) {
+            console.warn('[Storage] Failed to save quick draft:', error);
+            if (!storageWarningShown) {
+                showToast(
+                    'Draft Not Saved',
+                    'Browser storage is full. Upload still works, but auto-save is paused.',
+                    'info'
+                );
+                storageWarningShown = true;
+            }
+            return false;
+        }
+    }
+
     function updateLastSavedTime() {
         const now = new Date();
         lastSavedTime.textContent = `Saved: ${now.toLocaleTimeString()}`;
@@ -156,19 +98,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedData = cvStorage.getCurrentCV();
 
         if (savedData) {
-            if (savedData.cvText) {
-                cvInput.value = savedData.cvText;
-                updateCharCount(cvInput, cvCharCount);
-            }
+            const hasDraft = Boolean((savedData.cvText && savedData.cvText.trim()) || (savedData.jdText && savedData.jdText.trim()));
+            if (!hasDraft) return;
 
-            if (savedData.jdText) {
-                jdInput.value = savedData.jdText;
-                updateCharCount(jdInput, jdCharCount);
-            }
+            const shouldRestore = window.confirm('Restore previous draft?');
 
-            if (savedData.cvText || savedData.jdText) {
+            if (shouldRestore) {
+                if (savedData.cvText) {
+                    cvInput.value = savedData.cvText;
+                    updateCharCount(cvInput, cvCharCount);
+                }
+
+                if (savedData.jdText) {
+                    jdInput.value = savedData.jdText;
+                    updateCharCount(jdInput, jdCharCount);
+                }
+
                 showToast('Restored', 'Your previous work has been restored', 'info');
                 updateLastSavedTime();
+            } else {
+                // Remove current quick-draft so the user starts clean.
+                localStorage.removeItem(`${cvStorage.STORAGE_PREFIX}current`);
+                localStorage.removeItem('cvText');
+                localStorage.removeItem('jdText');
             }
         }
     }
@@ -309,12 +261,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach listeners for auto-save
     cvInput.addEventListener('input', () => {
         updateCharCount(cvInput, cvCharCount);
-        saveToStorage();
+        safeSaveToStorage();
     });
 
     jdInput.addEventListener('input', () => {
         updateCharCount(jdInput, jdCharCount);
-        saveToStorage();
+        safeSaveToStorage();
     });
 
     // Load saved data on startup
@@ -338,6 +290,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Reset ATS view if active
                 if (atsRawText) atsRawText.textContent = '';
+
+                // Reset results and related actions
+                resultsSection.classList.add('hidden');
+                coverLetterAction.classList.add('hidden');
+                if (tunerSection) tunerSection.classList.add('hidden');
+                suggestionsList.innerHTML = '';
+                missingKeywordsList.innerHTML = '';
+                questionsContainer.innerHTML = '';
+                wordCountEl.textContent = '-';
+                verbCountEl.textContent = '-';
+                readabilityEl.textContent = '-';
 
                 showToast('Cleared', 'All inputs and saved data have been cleared', 'info');
             }
@@ -385,7 +348,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 // Display the cover letter in the modal
-                coverLetterText.innerHTML = `<pre style="white-space: pre-wrap; font-family: inherit;">${data.coverLetter}</pre>`;
+                latestCoverLetter = (data.coverLetter || '').trim();
+                coverLetterText.textContent = latestCoverLetter;
                 coverLetterModal.classList.remove('hidden');
 
                 showToast('Success', 'Cover letter generated!', 'success');
@@ -420,7 +384,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Copy Cover Letter
     if (copyCoverLetterBtn) {
         copyCoverLetterBtn.addEventListener('click', () => {
-            const text = coverLetterText.textContent;
+            const text = latestCoverLetter || coverLetterText.textContent || '';
+            if (!text.trim()) {
+                showToast('No Content', 'Generate a cover letter first', 'error');
+                return;
+            }
             navigator.clipboard.writeText(text).then(() => {
                 showToast('Copied!', 'Cover letter copied to clipboard', 'success');
             }).catch(err => {
@@ -433,30 +401,71 @@ document.addEventListener('DOMContentLoaded', () => {
     // Download Cover Letter as PDF
     const downloadPdfBtn = document.getElementById('download-pdf-btn');
     if (downloadPdfBtn) {
-        downloadPdfBtn.addEventListener('click', () => {
-            const element = coverLetterText;
-            const opt = {
-                margin: 1,
-                filename: 'Cover_Letter.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
+        downloadPdfBtn.addEventListener('click', async () => {
+            const text = latestCoverLetter || coverLetterText.textContent || '';
+            if (!text.trim()) {
+                showToast('No Content', 'Generate a cover letter first', 'error');
+                return;
+            }
 
-            // Show loading state
             downloadPdfBtn.disabled = true;
             downloadPdfBtn.classList.add('loading');
 
-            html2pdf().set(opt).from(element).save().then(() => {
+            try {
+                if (window.jspdf && window.jspdf.jsPDF) {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait' });
+                    const margin = 54;
+                    const lineHeight = 18;
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+
+                    doc.setFont('times', 'normal');
+                    doc.setFontSize(12);
+
+                    const paragraphs = text.split('\n');
+                    let y = 72;
+
+                    paragraphs.forEach(paragraph => {
+                        const wrappedLines = doc.splitTextToSize(paragraph || ' ', maxWidth);
+                        wrappedLines.forEach(line => {
+                            if (y > pageHeight - 72) {
+                                doc.addPage();
+                                y = 72;
+                            }
+                            doc.text(line, margin, y);
+                            y += lineHeight;
+                        });
+                        y += 6;
+                    });
+
+                    doc.save('Cover_Letter.pdf');
+                } else {
+                    const exportNode = document.createElement('div');
+                    exportNode.style.cssText = 'width: 816px; padding: 72px; background: #fff; color: #111827; font-family: Georgia, serif; font-size: 14px; line-height: 1.65; white-space: pre-wrap;';
+                    exportNode.textContent = text;
+                    document.body.appendChild(exportNode);
+
+                    const opt = {
+                        margin: 0,
+                        filename: 'Cover_Letter.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, backgroundColor: '#ffffff' },
+                        jsPDF: { unit: 'pt', format: 'letter', orientation: 'portrait' }
+                    };
+
+                    await html2pdf().set(opt).from(exportNode).save();
+                    document.body.removeChild(exportNode);
+                }
+
                 showToast('Downloaded!', 'Cover letter saved as PDF', 'success');
-                downloadPdfBtn.disabled = false;
-                downloadPdfBtn.classList.remove('loading');
-            }).catch(err => {
+            } catch (err) {
                 console.error('PDF generation failed:', err);
                 showToast('Download Failed', 'Could not generate PDF', 'error');
+            } finally {
                 downloadPdfBtn.disabled = false;
                 downloadPdfBtn.classList.remove('loading');
-            });
+            }
         });
     }
 
@@ -496,19 +505,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch available models
     async function fetchModels() {
         try {
-            const response = await fetch('/api/models');
-            if (response.ok) {
-                const data = await response.json();
-                if (data.models && data.models.length > 0) {
-                    modelSelect.innerHTML = '';
-                    data.models.forEach((model, index) => {
-                        const option = document.createElement('option');
-                        option.value = model.name;
-                        option.textContent = model.displayName;
-                        if (index === 0) option.selected = true;
-                        modelSelect.appendChild(option);
-                    });
-                }
+            const data = await window.api.fetchModels();
+            if (data.models && data.models.length > 0) {
+                modelSelect.innerHTML = '';
+                data.models.forEach((model, index) => {
+                    const option = document.createElement('option');
+                    option.value = model.name;
+                    option.textContent = model.displayName;
+                    if (index === 0) option.selected = true;
+                    modelSelect.appendChild(option);
+                });
             }
         } catch (error) {
             console.error('Failed to fetch models:', error);
@@ -518,84 +524,131 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchModels();
 
     // --- Helper Functions ---
-
-    async function extractTextFromPDF(file) {
-        try {
-            // Lazy-load pdf.js if not already loaded
-            if (typeof pdfjsLib === 'undefined') {
-                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-                // set workerSrc for pdfjs
-                if (typeof pdfjsLib !== 'undefined') {
-                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                }
-            }
-
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            let fullText = "";
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                const pageText = textContent.items.map(item => item.str).join(" ");
-                fullText += pageText + "\n";
-            }
-            return fullText;
-        } catch (e) {
-            console.error("PDF Extraction Error:", e);
-            throw new Error("Could not read PDF. Please ensure it is a valid text-based PDF.");
+    // PDF extraction moved to js/file-processor.js
+    function validateFile(file) {
+        if (window.fileProcessor && typeof window.fileProcessor.validateFile === 'function') {
+            return window.fileProcessor.validateFile(file);
         }
+
+        showToast('Uploader Unavailable', 'File processor is not loaded. Refresh the page and try again.', 'error');
+        return false;
     }
 
-    // Convert PDF pages to images for visual analysis
-    async function extractImagesFromPDF(file, maxPages = 3) {
-        try {
-            // Lazy-load pdf.js if not already loaded
-            if (typeof pdfjsLib === 'undefined') {
-                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-                if (typeof pdfjsLib !== 'undefined') {
-                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                }
-            }
-
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            const images = [];
-            const pagesToRender = Math.min(pdf.numPages, maxPages);
-
-            for (let i = 1; i <= pagesToRender; i++) {
-                const page = await pdf.getPage(i);
-                const scale = 1.5; // Good balance between quality and size
-                const viewport = page.getViewport({ scale });
-
-                // Create canvas
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                // Render page to canvas
-                await page.render({
-                    canvasContext: context,
-                    viewport: viewport
-                }).promise;
-
-                // Convert to base64 JPEG (smaller than PNG)
-                const imageData = canvas.toDataURL('image/jpeg', 0.85);
-                // Remove the data:image/jpeg;base64, prefix
-                const base64 = imageData.split(',')[1];
-                images.push({
-                    page: i,
-                    data: base64,
-                    mimeType: 'image/jpeg'
-                });
-            }
-
-            return images;
-        } catch (e) {
-            console.error("PDF Image Extraction Error:", e);
-            throw new Error("Could not render PDF as images.");
+    async function extractTextFromPDF(file) {
+        if (window.fileProcessor && typeof window.fileProcessor.extractTextFromPDF === 'function') {
+            return window.fileProcessor.extractTextFromPDF(file);
         }
+        throw new Error('PDF parser not loaded. Please refresh the page and try again.');
+    }
+
+    async function extractImagesFromPDF(file, maxPages = 3) {
+        if (window.fileProcessor && typeof window.fileProcessor.extractImagesFromPDF === 'function') {
+            return window.fileProcessor.extractImagesFromPDF(file, maxPages);
+        }
+        // Non-blocking fallback: text extraction can still continue.
+        return [];
+    }
+
+    const SERVER_PDF_FALLBACK_LIMIT_BYTES = 4 * 1024 * 1024;
+    const MIN_PDF_TEXT_LENGTH = 20;
+
+    function normalizeExtractedText(text) {
+        return String(text || '').replace(/\u0000/g, '').trim();
+    }
+
+    function hasExtractableText(text) {
+        return normalizeExtractedText(text).length >= MIN_PDF_TEXT_LENGTH;
+    }
+
+    async function extractTextFromPDFViaBackend(file) {
+        if (file.size > SERVER_PDF_FALLBACK_LIMIT_BYTES) {
+            throw new Error('PDF is too large for server fallback. Trying browser parser only.');
+        }
+
+        const toBase64 = (blob) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ''));
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+
+        const fileBase64 = await toBase64(file);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        let response;
+        try {
+            response = await fetch('/api/extract-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fileBase64 }),
+                signal: controller.signal
+            });
+        } finally {
+            clearTimeout(timeoutId);
+        }
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(payload.error || payload.message || 'Server PDF extraction failed');
+        }
+        return normalizeExtractedText(payload.text || '');
+    }
+
+    async function extractPdfTextReliable(file, contextLabel = 'CV') {
+        let browserText = '';
+        let backendText = '';
+        let browserError = null;
+        let backendError = null;
+
+        // Browser parser first: avoids payload limits and works offline once loaded.
+        try {
+            browserText = normalizeExtractedText(await extractTextFromPDF(file));
+            if (hasExtractableText(browserText)) {
+                return { text: browserText, method: 'browser' };
+            }
+        } catch (error) {
+            browserError = error;
+            console.warn(`[${contextLabel} Upload] Browser PDF extraction failed:`, error);
+        }
+
+        // Server parser second: useful fallback for edge cases in browser parsing.
+        try {
+            backendText = normalizeExtractedText(await extractTextFromPDFViaBackend(file));
+            if (hasExtractableText(backendText)) {
+                return { text: backendText, method: 'server' };
+            }
+        } catch (error) {
+            backendError = error;
+            console.warn(`[${contextLabel} Upload] Server PDF extraction failed:`, error);
+        }
+
+        // Keep partial text if one parser produced something non-empty.
+        const bestEffortText = (backendText.length > browserText.length) ? backendText : browserText;
+        if (bestEffortText) {
+            return { text: bestEffortText, method: backendText.length > browserText.length ? 'server' : 'browser', partial: true };
+        }
+
+        const reasons = [browserError?.message, backendError?.message].filter(Boolean).join(' | ');
+        const reasonSuffix = reasons ? ` (${reasons})` : '';
+        throw new Error(
+            `Could not extract readable text from this PDF${reasonSuffix}. ` +
+            'If this is a scanned PDF, export as DOCX or paste text directly.'
+        );
+    }
+
+    function queuePdfImageExtraction(file, contextLabel = 'CV') {
+        (async () => {
+            try {
+                const images = await extractImagesFromPDF(file, 3);
+                window.cvPdfImages = images;
+                if (images.length > 0) {
+                    showToast('Visual Mode Ready', `PDF rendered for visual analysis (${images.length} pages)`, 'info');
+                }
+            } catch (error) {
+                console.warn(`[${contextLabel} Upload] Could not extract PDF images:`, error);
+                window.cvPdfImages = null;
+            }
+        })();
     }
 
     function setupDragAndDrop(dropZone, fileInput, handleFile) {
@@ -647,6 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cvFileInput = document.getElementById('cv-file-upload');
     const cvFileNameDisplay = document.getElementById('file-name');
     const cvDropZone = document.getElementById('cv-drop-zone');
+    const cvUploadTriggerLabel = document.querySelector('#cv-drop-zone label[for="cv-file-upload"]');
 
     if (cvFileInput) {
         cvFileInput.addEventListener('change', async (e) => {
@@ -657,18 +711,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Drag-and-drop support for CV PDF
     if (cvDropZone && cvFileInput) {
+        // Prevent double file-dialog opens:
+        // the label already triggers the file input natively.
+        if (cvUploadTriggerLabel) {
+            cvUploadTriggerLabel.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+
         // Highlight on drag over
         cvDropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             console.log('[Drag-Drop] Dragover event on main drop zone');
             cvDropZone.classList.add('drag-over');
         });
         cvDropZone.addEventListener('dragleave', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             cvDropZone.classList.remove('drag-over');
         });
         cvDropZone.addEventListener('drop', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             console.log('[Drag-Drop] Drop event on main drop zone');
             cvDropZone.classList.remove('drag-over');
             const files = e.dataTransfer.files;
@@ -677,7 +742,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         // Click to open file dialog
-        cvDropZone.addEventListener('click', () => {
+        cvDropZone.addEventListener('click', (e) => {
+            if (e.target && e.target.closest && e.target.closest('label[for="cv-file-upload"]')) {
+                return;
+            }
             cvFileInput.click();
         });
         // Keyboard accessibility
@@ -742,51 +810,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!validateFile(file)) {
             console.log('[CV Upload] File validation failed');
+            cvFileInput.value = '';
             return;
         }
 
         cvFileNameDisplay.textContent = file.name;
-        cvInput.value = "Reading PDF...";
+        cvInput.value = "Reading file...";
         try {
             console.log('[CV Upload] Starting file extraction...');
             if (file.type === "application/pdf" || file.name.toLowerCase().endsWith('.pdf')) {
                 console.log('[CV Upload] Processing as PDF');
-                // Extract text
-                const text = await extractTextFromPDF(file);
-                cvInput.value = text;
-
-                // Also extract images for visual analysis
-                console.log('[CV Upload] Extracting images for visual analysis...');
-                try {
-                    const images = await extractImagesFromPDF(file, 3); // Max 3 pages
-                    window.cvPdfImages = images; // Store for later use
-                    console.log(`[CV Upload] Extracted ${images.length} page images`);
-                    showToast('Visual Mode Ready', `PDF rendered for visual analysis (${images.length} pages)`, 'info');
-                } catch (imgErr) {
-                    console.warn('[CV Upload] Could not extract images:', imgErr);
-                    window.cvPdfImages = null;
+                const { text, method, partial } = await extractPdfTextReliable(file, 'CV');
+                if (!text || !text.trim()) {
+                    throw new Error('No selectable text found. This PDF may be scanned/image-based. Please upload a text-based PDF, DOCX, or paste text.');
                 }
+                cvInput.value = text;
+                cvInput.dispatchEvent(new Event('input'));
+                showToast('File Loaded', `Loaded ${file.name} (${method} parser)`, 'success');
+                if (partial) {
+                    showToast('Check Formatting', 'Some PDF text may be incomplete. Review before analyzing.', 'info');
+                }
+                queuePdfImageExtraction(file, 'CV');
+                console.log(`[CV Upload] PDF processed successfully via ${method} parser`);
             } else if (file.name.toLowerCase().endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
                 console.log('[CV Upload] Processing as Word document');
                 const text = await extractTextFromDocx(file);
+                if (!text || !text.trim()) {
+                    throw new Error('Could not extract readable text from this DOCX. Please export as PDF or paste the text.');
+                }
                 cvInput.value = text;
+                cvInput.dispatchEvent(new Event('input'));
                 window.cvPdfImages = null; // No visual analysis for DOCX
+            } else if (file.name.toLowerCase().endsWith('.doc') || file.type === 'application/msword') {
+                throw new Error('Legacy .doc files are not supported reliably in-browser. Please convert to .docx or PDF.');
             } else {
                 console.log('[CV Upload] Processing as plain text');
                 const text = await file.text();
+                if (!text || !text.trim()) {
+                    throw new Error('This text file appears empty.');
+                }
                 cvInput.value = text;
+                cvInput.dispatchEvent(new Event('input'));
                 window.cvPdfImages = null; // No visual analysis for text
             }
 
-            // Trigger input event to update counters and ATS view
-            cvInput.dispatchEvent(new Event('input'));
-
             console.log('[CV Upload] File processed successfully');
-            showToast('File Loaded', `Successfully loaded ${file.name}`, 'success');
+            if (!(file.type === "application/pdf" || file.name.toLowerCase().endsWith('.pdf'))) {
+                showToast('File Loaded', `Successfully loaded ${file.name}`, 'success');
+            }
         } catch (error) {
             console.error(error);
             cvInput.value = "Error reading file: " + error.message;
             showToast('Error', 'Failed to read file: ' + error.message, 'error');
+        } finally {
+            if (cvFileInput) cvFileInput.value = '';
         }
     }
 
@@ -835,24 +912,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleJDFile(file) {
-        if (!validateFile(file)) return;
+        if (!validateFile(file)) {
+            jdFileInput.value = '';
+            return;
+        }
 
         jdFileNameDisplay.textContent = file.name;
-        jdInput.value = "Reading PDF...";
+        jdInput.value = "Reading file...";
         try {
-            if (file.type === "application/pdf") {
-                const text = await extractTextFromPDF(file);
+            if (file.type === "application/pdf" || file.name.toLowerCase().endsWith('.pdf')) {
+                const { text, method, partial } = await extractPdfTextReliable(file, 'JD');
+                if (!text || !text.trim()) {
+                    throw new Error('No selectable text found in this PDF. Please use a text-based PDF or paste the job description.');
+                }
                 jdInput.value = text;
+                jdInput.dispatchEvent(new Event('input'));
+                showToast('File Loaded', `Loaded ${file.name} (${method} parser)`, 'success');
+                if (partial) {
+                    showToast('Check Formatting', 'Some job description text may be incomplete. Review before analyzing.', 'info');
+                }
+            } else if (file.name.toLowerCase().endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                const text = await extractTextFromDocx(file);
+                if (!text || !text.trim()) {
+                    throw new Error('Could not extract readable text from this DOCX.');
+                }
+                jdInput.value = text;
+                jdInput.dispatchEvent(new Event('input'));
+            } else if (file.name.toLowerCase().endsWith('.doc') || file.type === 'application/msword') {
+                throw new Error('Legacy .doc files are not supported reliably in-browser. Please convert to .docx or PDF.');
             } else {
                 const text = await file.text();
+                if (!text || !text.trim()) {
+                    throw new Error('This file appears empty.');
+                }
                 jdInput.value = text;
+                jdInput.dispatchEvent(new Event('input'));
             }
-            updateCharCount(jdInput, jdCharCount);
-            showToast('File Loaded', `Successfully loaded ${file.name}`, 'success');
+            if (!(file.type === "application/pdf" || file.name.toLowerCase().endsWith('.pdf'))) {
+                showToast('File Loaded', `Successfully loaded ${file.name}`, 'success');
+            }
         } catch (error) {
             console.error(error);
             jdInput.value = "Error reading file: " + error.message;
             showToast('Error', 'Failed to read file: ' + error.message, 'error');
+        } finally {
+            if (jdFileInput) jdFileInput.value = '';
         }
     }
 
@@ -975,50 +1079,23 @@ document.addEventListener('DOMContentLoaded', () => {
         analyzeBtn.disabled = true;
 
         try {
-            const requestBody = {
+            const result = await window.api.analyzeCV(
                 cvText,
                 jdText,
-                model: modelSelect.value
-            };
+                modelSelect.value,
+                hasImages ? window.cvPdfImages : []
+            );
 
-            // Include images for visual analysis if available
-            if (hasImages) {
-                requestBody.cvImages = window.cvPdfImages;
-                console.log(`[Analyze] Sending ${window.cvPdfImages.length} images for visual analysis`);
-            }
-
-            const response = await fetch('/api/analyze', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                if (response.status === 429) {
-                    throw new Error('Server is busy (Rate Limit). Please wait a minute and try again.');
-                }
-                throw new Error(errorData.message || 'Analysis failed');
-            }
-
-            const result = await response.json();
             updateResultsFromAI(result);
-
             showToast('Success!', 'CV analysis completed successfully', 'success');
 
-            // Smooth scroll to results
             setTimeout(() => {
                 resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 300);
 
         } catch (error) {
             console.error("Analysis failed:", error);
-            const isRateLimit = error.message.includes('Rate Limit') || error.message.includes('Resource exhausted');
-            showToast(
-                isRateLimit ? 'Server Busy' : 'Analysis Failed',
-                error.message,
-                'error'
-            );
+            showToast('Analysis Failed', error.message, 'error');
         } finally {
             hideLoading();
             analyzeBtn.classList.remove('loading');
@@ -1039,9 +1116,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update Suggestions
         suggestionsList.innerHTML = '';
-        data.suggestions.forEach(s => {
+        const suggestions = Array.isArray(data.suggestions) ? data.suggestions : [];
+        suggestions.forEach(s => {
+            const normalized = typeof s === 'string'
+                ? {
+                    title: 'Improvement',
+                    recommendation: s,
+                    evidence: 'No direct evidence snippet was returned.',
+                    priority: 'medium'
+                }
+                : {
+                    title: s.title || s.issue || 'Improvement',
+                    recommendation: s.recommendation || s.action || '',
+                    evidence: s.evidence || s.cvEvidence || s.snippet || 'No direct evidence snippet was returned.',
+                    priority: ['high', 'medium', 'low'].includes(String(s.priority || '').toLowerCase())
+                        ? String(s.priority).toLowerCase()
+                        : 'medium'
+                };
+
             const li = document.createElement('li');
-            li.textContent = s;
+            li.className = 'suggestion-item';
+
+            const header = document.createElement('div');
+            header.className = 'suggestion-header';
+
+            const title = document.createElement('strong');
+            title.className = 'suggestion-title';
+            title.textContent = normalized.title;
+
+            const priority = document.createElement('span');
+            priority.className = `priority-badge priority-${normalized.priority}`;
+            priority.textContent = normalized.priority;
+
+            header.appendChild(title);
+            header.appendChild(priority);
+
+            const recommendation = document.createElement('p');
+            recommendation.className = 'suggestion-recommendation';
+            recommendation.textContent = normalized.recommendation || 'No recommendation provided.';
+
+            const evidence = document.createElement('p');
+            evidence.className = 'suggestion-evidence';
+            evidence.textContent = `Evidence: "${normalized.evidence}"`;
+
+            li.appendChild(header);
+            li.appendChild(recommendation);
+            li.appendChild(evidence);
             suggestionsList.appendChild(li);
         });
 
@@ -1078,10 +1198,16 @@ document.addEventListener('DOMContentLoaded', () => {
             data.interviewQuestions.forEach(q => {
                 const card = document.createElement('div');
                 card.className = 'question-card';
-                card.innerHTML = `
-                    <span class="question-tag">${q.type}</span>
-                    <p class="question-text">${q.text}</p>
-                `;
+                const tag = document.createElement('span');
+                tag.className = 'question-tag';
+                tag.textContent = (q && q.type) ? String(q.type) : 'general';
+
+                const text = document.createElement('p');
+                text.className = 'question-text';
+                text.textContent = (q && q.text) ? String(q.text) : '';
+
+                card.appendChild(tag);
+                card.appendChild(text);
                 questionsContainer.appendChild(card);
             });
             // interviewSection.classList.remove('hidden'); // Always visible
@@ -1102,461 +1228,199 @@ document.addEventListener('DOMContentLoaded', () => {
         verbCountEl.textContent = "AI Analyzed";
         readabilityEl.textContent = "AI Analyzed";
 
-        // Render Section Tuner
-        renderTuner(cvInput.value);
-    }
-
-    function analyzeCV(cvText, jdText) {
-        // 1. Basic Metrics
-        const words = cvText.split(/\s+/).filter(w => w.length > 0);
-        const wordCount = words.length;
-
-        // 2. Action Verbs Analysis
-        const lowerCvText = cvText.toLowerCase();
-        const foundVerbs = actionVerbs.filter(verb => lowerCvText.includes(verb));
-        const uniqueVerbs = [...new Set(foundVerbs)];
-
-        // 3. Score Calculation (Simple Heuristic)
-        let score = 0;
-
-        // Length score (aim for 400-1000 words)
-        if (wordCount >= 400 && wordCount <= 1000) score += 30;
-        else if (wordCount > 200) score += 15;
-
-        // Verb score
-        if (uniqueVerbs.length > 10) score += 30;
-        else if (uniqueVerbs.length > 5) score += 15;
-        else score += 5;
-
-        // Structure/Formatting (Mock check - looking for common section headers)
-        const sections = ['experience', 'education', 'skills', 'summary', 'projects'];
-        const foundSections = sections.filter(s => lowerCvText.includes(s));
-        if (foundSections.length >= 3) score += 40;
-        else score += (foundSections.length * 10);
-
-        // Cap score at 100
-        score = Math.min(100, score);
-
-        // 4. JD Analysis (if provided)
-        let jdScore = 0;
-        let missingKeywords = [];
-
-        if (jdText) {
-            const jdAnalysis = analyzeJD(jdText, lowerCvText);
-            jdScore = jdAnalysis.score;
-            missingKeywords = jdAnalysis.missing;
-            jdScoreCard.classList.remove('hidden');
-            missingKeywordsCard.classList.remove('hidden');
-        } else {
-            jdScoreCard.classList.add('hidden');
-            missingKeywordsCard.classList.add('hidden');
-        }
-
-        // 5. Update UI
-        updateResults(score, wordCount, uniqueVerbs.length, foundSections, jdScore, missingKeywords);
-        generateInterviewQuestions(cvText);
-
-        // Show sections
-        resultsSection.classList.remove('hidden');
-        interviewSection.classList.remove('hidden');
-
-        // Scroll to results
-        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    function analyzeJD(jdText, cvLowerText) {
-        // Extract potential keywords from JD (words > 4 chars, not stopwords)
-        const jdWords = jdText.toLowerCase()
-            .replace(/[^\w\s]/g, '') // Remove punctuation
-            .split(/\s+/)
-            .filter(w => w.length > 3 && !stopWords.has(w));
-
-        // Count frequency to find most important words
-        const frequency = {};
-        jdWords.forEach(w => {
-            frequency[w] = (frequency[w] || 0) + 1;
-        });
-
-        // Get top 20 keywords
-        const topKeywords = Object.entries(frequency)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 20)
-            .map(entry => entry[0]);
-
-        // Check which are missing
-        const missing = topKeywords.filter(keyword => !cvLowerText.includes(keyword));
-        const foundCount = topKeywords.length - missing.length;
-
-        // Calculate score
-        const score = Math.round((foundCount / topKeywords.length) * 100);
-
-        return { score, missing };
-    }
-
-    function updateResults(score, wordCount, verbCount, foundSections, jdScore, missingKeywords) {
-        console.log('[Debug] updateResults called with:', { score, wordCount, verbCount, jdScore, missingKeywords });
-        // Animate Scores
-        animateScore(score, scoreValue, scorePath, scoreMessage);
-        if (jdScore > 0) {
-            animateScore(jdScore, jdScoreValue, jdScorePath, jdScoreMessage);
-        }
-
-        // Update Metrics
-        wordCountEl.textContent = wordCount;
-        verbCountEl.textContent = verbCount;
-        readabilityEl.textContent = "High"; // Mock value for now
-
-        // Update Suggestions
-        suggestionsList.innerHTML = '';
-        const suggestions = [];
-
-        if (wordCount < 400) suggestions.push("Your CV might be too short. Aim for at least 400 words to fully detail your experience.");
-        if (verbCount < 5) suggestions.push("Try using more strong action verbs (e.g., 'Led', 'Developed') to describe your achievements.");
-        if (!foundSections.includes('skills')) suggestions.push("Consider adding a distinct 'Skills' section.");
-        if (score > 80) suggestions.push("Great job! Your CV is well-structured and uses strong language.");
-
-        suggestions.forEach(s => {
-            const li = document.createElement('li');
-            li.textContent = s;
-            suggestionsList.appendChild(li);
-        });
-
-        // Update Missing Keywords
-        missingKeywordsList.innerHTML = '';
-        if (missingKeywords.length > 0) {
-            missingKeywords.forEach(keyword => {
-                const tag = document.createElement('span');
-                tag.className = 'keyword-tag';
-                tag.textContent = keyword;
-                tag.title = "Click to generate a bullet point for this keyword";
-
-                tag.addEventListener('click', () => generateKeywordSuggestion(keyword, tag));
-
-                missingKeywordsList.appendChild(tag);
-            });
-        } else if (document.getElementById('jd-input').value.trim()) {
-            const msg = document.createElement('p');
-            msg.textContent = "Great match! You have all the key keywords.";
-            msg.style.color = "var(--success)";
-            missingKeywordsList.appendChild(msg);
-            missingKeywordsList.appendChild(msg);
-        }
-
-        // Render Tuner
-        renderTuner(document.getElementById('cv-input').value);
-    }
-
-    function animateScore(targetScore, valueEl, pathEl, messageEl) {
-        let currentScore = 0;
-        const duration = 1500;
-        const interval = 20;
-        const step = targetScore / (duration / interval);
-
-        // Reset path
-        pathEl.setAttribute('stroke-dasharray', `0, 100`);
-
-        const timer = setInterval(() => {
-            currentScore += step;
-            if (currentScore >= targetScore) {
-                currentScore = targetScore;
-                clearInterval(timer);
-            }
-
-            valueEl.textContent = Math.round(currentScore);
-            pathEl.setAttribute('stroke-dasharray', `${currentScore}, 100`);
-
-            // Color based on score
-            let color;
-            let text;
-            if (currentScore < 50) {
-                color = 'var(--danger)';
-                text = "Needs Work";
-            } else if (currentScore < 75) {
-                color = 'var(--warning)';
-                text = "Good Start";
-            } else {
-                color = 'var(--success)';
-                text = "Excellent";
-            }
-
-            pathEl.style.stroke = color;
-            messageEl.style.color = color;
-            messageEl.textContent = text;
-
-            // Update glow color
-            const glowColor = currentScore < 50 ? 'rgba(248, 113, 113, 0.5)' :
-                currentScore < 75 ? 'rgba(251, 191, 36, 0.5)' :
-                    'rgba(74, 222, 128, 0.5)';
-            pathEl.style.filter = `drop-shadow(0 0 6px ${glowColor})`;
-        }, interval);
-    }
-
-    async function generateKeywordSuggestion(keyword, tagElement) {
-        if (tagElement.classList.contains('loading')) return;
-
-        tagElement.classList.add('loading');
-        showToast('Generating...', `Creating a bullet point for "${keyword}"...`, 'info');
-
-        try {
-            const response = await fetch('/api/generate-bullet', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    keyword: keyword,
-                    model: modelSelect.value
-                })
-            });
-
-            if (!response.ok) throw new Error('Generation failed');
-
-            const result = await response.json();
-            showKeywordPopup(keyword, result.bulletPoint);
-
-        } catch (error) {
-            console.error(error);
-            showToast('Error', 'Could not generate suggestion', 'error');
-        } finally {
-            tagElement.classList.remove('loading');
+        // Render Section Tuner (if available)
+        if (typeof renderTuner === 'function') {
+            renderTuner(cvInput.value);
         }
     }
 
-    function showKeywordPopup(keyword, text) {
-        // Remove existing popup
-        const existing = document.querySelector('.keyword-suggestion-popup');
-        if (existing) existing.remove();
-
-        const popup = document.createElement('div');
-        popup.className = 'keyword-suggestion-popup';
-        popup.innerHTML = `
-            <div class="suggestion-header">
-                <div class="suggestion-title">Suggestion for "${keyword}"</div>
-                <div class="suggestion-close" onclick="this.parentElement.parentElement.remove()">×</div>
-            </div>
-            <div class="suggestion-content">${text}</div>
-            <button class="btn btn-primary copy-suggestion-btn" onclick="navigator.clipboard.writeText('${text.replace(/'/g, "\\'")}'); showToast('Copied!', 'Bullet point copied', 'success'); this.parentElement.remove();">
-                Copy to Clipboard
-            </button>
-        `;
-        document.body.appendChild(popup);
-    }
-
-    function generateInterviewQuestions(text) {
-        questionsContainer.innerHTML = '';
-        const lowerText = text.toLowerCase();
-
-        // Select categories based on keywords
-        let categories = ['general'];
-        if (lowerText.includes('lead') || lowerText.includes('manager') || lowerText.includes('team')) {
-            categories.push('leadership');
-        }
-        if (lowerText.includes('design') || lowerText.includes('creative') || lowerText.includes('art')) {
-            categories.push('creative');
-        }
-        if (lowerText.includes('code') || lowerText.includes('engineer') || lowerText.includes('developer') || lowerText.includes('data')) {
-            categories.push('technical');
-        }
-
-        // Flatten and shuffle questions
-        let selectedQuestions = [];
-        categories.forEach(cat => {
-            selectedQuestions = [...selectedQuestions, ...questionBank[cat].map(q => ({ text: q, type: cat }))];
-        });
-
-        // Pick 3 random questions
-        const finalQuestions = selectedQuestions.sort(() => 0.5 - Math.random()).slice(0, 3);
-
-        finalQuestions.forEach(q => {
-            const card = document.createElement('div');
-            card.className = 'question-card';
-            card.innerHTML = `
-                <span class="question-tag">${q.type}</span>
-                <p class="question-text">${q.text}</p>
-            `;
-            questionsContainer.appendChild(card);
-        });
-    }
+    // Legacy local heuristic analysis functions moved to js/analyzer.js
 
     // --- Smart Section Tuner ---
 
     function parseSections(text) {
-        const sections = [];
-        const lines = text.split('\n');
-        let currentSection = { title: 'Header/Intro', content: [] };
-
-        // Common section headers regex
-        const headerRegex = /^(experience|education|skills|summary|profile|projects|certifications|languages|objective)/i;
-
-        lines.forEach(line => {
-            const trimmed = line.trim();
-            if (!trimmed) return;
-
-            // Heuristic: Short lines that match keywords are likely headers
-            if (trimmed.length < 30 && headerRegex.test(trimmed)) {
-                if (currentSection.content.length > 0) {
-                    sections.push({ ...currentSection, content: currentSection.content.join('\n') });
-                }
-                currentSection = { title: trimmed, content: [] };
-            } else {
-                currentSection.content.push(line);
-            }
-        });
-
-        // Push last section
-        if (currentSection.content.length > 0) {
-            sections.push({ ...currentSection, content: currentSection.content.join('\n') });
+        if (window.analyzer && typeof window.analyzer.parseSections === 'function') {
+            return window.analyzer.parseSections(text);
         }
-
-        return sections;
+        return [];
     }
 
     function renderTuner(text) {
-        console.log('[Tuner] renderTuner called with text length:', text ? text.length : 0);
-        const tunerSection = document.getElementById('tuner-section');
-        const container = document.getElementById('tuner-container');
+        if (!tunerSection || !tunerContainer) return;
 
-        if (!tunerSection || !container) {
-            console.log('[Tuner] Elements not found:', { tunerSection: !!tunerSection, container: !!container });
+        const sections = parseSections(text)
+            .map((section) => ({
+                title: String(section.title || 'Section').trim(),
+                content: String(section.content || '').trim()
+            }))
+            .filter((section) => section.content.length > 30)
+            .slice(0, 8);
+
+        tunerContainer.innerHTML = '';
+
+        if (!sections.length) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'tuner-placeholder';
+            placeholder.textContent = 'No clear sections detected yet. Add section headings like Experience, Education, or Skills.';
+            tunerContainer.appendChild(placeholder);
+            tunerSection.classList.remove('hidden');
             return;
         }
 
-        tunerSection.classList.remove('hidden');
-        container.innerHTML = '';
-
-        const sections = parseSections(text);
-        console.log('[Tuner] Parsed sections:', sections.length, sections);
-
-        let cardsAdded = 0;
         sections.forEach((section, index) => {
-            console.log(`[Tuner] Section ${index}:`, section.title, 'content length:', section.content.length);
-            // Skip very short sections (likely noise)
-            if (section.content.length < 20) {
-                console.log(`[Tuner] Skipping section ${index} - too short`);
-                return;
-            }
-
             const card = document.createElement('div');
             card.className = 'tuner-card';
-            card.innerHTML = `
-                <div class="tuner-header">
-                    <div class="tuner-title">${section.title}</div>
-                    <button class="btn-optimize" onclick="optimizeSection(${index}, this)">
-                        <span>✨</span> Optimize
-                    </button>
-                </div>
-                <div class="tuner-content" id="original-${index}">${section.content}</div>
-                <div id="optimized-container-${index}"></div>
-            `;
-            container.appendChild(card);
-            cardsAdded++;
+
+            const header = document.createElement('div');
+            header.className = 'tuner-header';
+
+            const title = document.createElement('h3');
+            title.className = 'tuner-title';
+            title.textContent = section.title;
+
+            const optimizeBtn = document.createElement('button');
+            optimizeBtn.className = 'btn-optimize';
+            optimizeBtn.type = 'button';
+            optimizeBtn.innerHTML = '<span>✨</span> Optimize';
+            optimizeBtn.addEventListener('click', () => window.optimizeSection(index, optimizeBtn));
+
+            header.appendChild(title);
+            header.appendChild(optimizeBtn);
+
+            const content = document.createElement('div');
+            content.className = 'tuner-content';
+            content.id = `original-${index}`;
+            content.textContent = section.content;
+
+            const optimizedContainer = document.createElement('div');
+            optimizedContainer.id = `optimized-container-${index}`;
+
+            card.appendChild(header);
+            card.appendChild(content);
+            card.appendChild(optimizedContainer);
+            tunerContainer.appendChild(card);
         });
 
-        console.log('[Tuner] Cards added:', cardsAdded);
-
-        if (cardsAdded === 0) {
-            container.innerHTML = '<div class="tuner-placeholder">No sections detected. Try a CV with clear headers like "Experience", "Education", or "Summary".</div>';
-        }
+        tunerSection.classList.remove('hidden');
     }
 
-    window.optimizeSection = async function (index, btn) {
-        const originalContent = document.getElementById(`original-${index}`).textContent;
-        const container = document.getElementById(`optimized-container-${index}`);
-        const title = btn.previousElementSibling.textContent;
+        window.optimizeSection = async function (index, btn) {
+            const originalContent = document.getElementById(`original-${index}`).textContent;
+            const container = document.getElementById(`optimized-container-${index}`);
+            const title = btn.previousElementSibling.textContent;
 
-        btn.disabled = true;
-        btn.innerHTML = '<span>⏳</span> Optimizing...';
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span> Optimizing...';
 
-        try {
-            const response = await fetch('/api/optimize-section', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sectionText: originalContent,
-                    sectionType: title,
-                    model: modelSelect.value
-                })
-            });
+            try {
+                const response = await fetch('/api/optimize-section', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sectionText: originalContent,
+                        sectionTitle: title,
+                        model: modelSelect.value
+                    })
+                });
 
-            if (!response.ok) throw new Error('Optimization failed');
+                if (!response.ok) throw new Error('Optimization failed');
 
-            const result = await response.json();
+                const result = await response.json();
 
-            container.innerHTML = `
-                <div class="tuner-optimized">
-                    <h4><span>🚀</span> Optimized Version</h4>
-                    <div style="white-space: pre-wrap; font-size: 0.9rem; margin-bottom: 12px;">${result.optimizedText}</div>
-                    <button class="btn-copy-sm" onclick="navigator.clipboard.writeText(\`${result.optimizedText.replace(/`/g, "\\`")}\`); showToast('Copied!', 'Optimized text copied', 'success');">
-                        Copy to Clipboard
-                    </button>
-                </div>
-            `;
+                container.innerHTML = '';
+                const optimizedBlock = document.createElement('div');
+                optimizedBlock.className = 'tuner-optimized';
 
-            showToast('Optimized!', `Section "${title}" updated`, 'success');
+                const optimizedTitle = document.createElement('h4');
+                optimizedTitle.textContent = '🚀 Optimized Version';
 
-        } catch (error) {
-            console.error(error);
-            showToast('Error', 'Could not optimize section', 'error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<span>✨</span> Optimize';
-        }
-    };
+                const optimizedText = document.createElement('div');
+                optimizedText.style.whiteSpace = 'pre-wrap';
+                optimizedText.style.fontSize = '0.9rem';
+                optimizedText.style.marginBottom = '12px';
+                optimizedText.textContent = result.optimizedText || '';
 
-    // Keyboard accessibility for modal
-    if (coverLetterModal) {
-        coverLetterModal.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                coverLetterModal.classList.add('hidden');
-                closeModalBtn.focus();
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'btn-copy-sm';
+                copyBtn.textContent = 'Copy to Clipboard';
+                copyBtn.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(result.optimizedText || '');
+                        showToast('Copied!', 'Optimized text copied', 'success');
+                    } catch (_) {
+                        showToast('Copy Failed', 'Could not copy optimized text', 'error');
+                    }
+                });
+
+                optimizedBlock.appendChild(optimizedTitle);
+                optimizedBlock.appendChild(optimizedText);
+                optimizedBlock.appendChild(copyBtn);
+                container.appendChild(optimizedBlock);
+
+                showToast('Optimized!', `Section "${title}" updated`, 'success');
+
+            } catch (error) {
+                console.error(error);
+                showToast('Error', 'Could not optimize section', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>✨</span> Optimize';
             }
-            if (e.key === 'Tab') {
-                const focusable = coverLetterModal.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
-                const first = focusable[0];
-                const last = focusable[focusable.length - 1];
-                if (e.shiftKey && document.activeElement === first) {
-                    e.preventDefault();
-                    last.focus();
-                } else if (!e.shiftKey && document.activeElement === last) {
-                    e.preventDefault();
-                    first.focus();
+        };
+
+        // Keyboard accessibility for modal
+        if (coverLetterModal) {
+            coverLetterModal.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    coverLetterModal.classList.add('hidden');
+                    closeModalBtn.focus();
                 }
-            }
-        });
-        // Focus modal when opened
-        document.getElementById('generate-cover-letter-btn')?.addEventListener('click', () => {
-            setTimeout(() => {
-                closeModalBtn.focus();
-            }, 100);
-        });
-    }
-    // --- Authentication Logic ---
-    const authManager = new AuthManager();
-    const loginBtn = document.getElementById('login-btn');
-    const authModal = document.getElementById('auth-modal');
-    const closeAuthBtn = document.getElementById('close-auth-btn');
-    const googleSignInBtn = document.getElementById('google-signin-btn');
-    const emailAuthForm = document.getElementById('email-auth-form');
-    const toggleAuthMode = document.getElementById('toggle-auth-mode');
-    const authModalTitle = document.getElementById('auth-modal-title');
-    const emailAuthBtn = emailAuthForm.querySelector('button');
+                if (e.key === 'Tab') {
+                    const focusable = coverLetterModal.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+                    const first = focusable[0];
+                    const last = focusable[focusable.length - 1];
+                    if (e.shiftKey && document.activeElement === first) {
+                        e.preventDefault();
+                        last.focus();
+                    } else if (!e.shiftKey && document.activeElement === last) {
+                        e.preventDefault();
+                        first.focus();
+                    }
+                }
+            });
+            // Focus modal when opened
+            document.getElementById('generate-cover-letter-btn')?.addEventListener('click', () => {
+                setTimeout(() => {
+                    closeModalBtn.focus();
+                }, 100);
+            });
+        }
+        // --- Authentication Logic ---
+        const authManager = new AuthManager();
+        const loginBtn = document.getElementById('login-btn');
+        const authModal = document.getElementById('auth-modal');
+        const closeAuthBtn = document.getElementById('close-auth-btn');
+        const googleSignInBtn = document.getElementById('google-signin-btn');
+        const emailAuthForm = document.getElementById('email-auth-form');
+        const toggleAuthMode = document.getElementById('toggle-auth-mode');
+        const authSwitchLabel = document.getElementById('auth-switch-label');
+        const authModalTitle = document.getElementById('auth-modal-title');
+        const emailAuthBtn = emailAuthForm.querySelector('button');
 
-    const userProfile = document.getElementById('user-profile');
-    const userName = document.getElementById('user-name');
-    const userAvatar = document.getElementById('user-avatar');
-    const logoutBtn = document.getElementById('logout-btn');
+        const userProfile = document.getElementById('user-profile');
+        const userName = document.getElementById('user-name');
+        const userAvatar = document.getElementById('user-avatar');
+        const logoutBtn = document.getElementById('logout-btn');
 
-    let isSignUpMode = false;
+        let isSignUpMode = false;
 
-    // Toggle between Login and Sign Up
-    if (toggleAuthMode) {
-        toggleAuthMode.addEventListener('click', (e) => {
-            e.preventDefault();
-            isSignUpMode = !isSignUpMode;
-
+        function updateAuthModeUI() {
             if (isSignUpMode) {
-                authModalTitle.textContent = "Create Account";
-                emailAuthBtn.textContent = "Sign Up with Email";
-                toggleAuthMode.textContent = "Sign In";
-                // Add name field if not present
+                authModalTitle.textContent = "Create account";
+                emailAuthBtn.textContent = "Create account with email";
+                toggleAuthMode.textContent = "Sign in";
+                if (authSwitchLabel) authSwitchLabel.textContent = "Already have an account?";
+
                 if (!document.getElementById('auth-name-group')) {
                     const nameGroup = document.createElement('div');
                     nameGroup.className = 'form-group';
@@ -1568,116 +1432,126 @@ document.addEventListener('DOMContentLoaded', () => {
                     emailAuthForm.insertBefore(nameGroup, emailAuthForm.firstChild);
                 }
             } else {
-                authModalTitle.textContent = "Welcome Back";
-                emailAuthBtn.textContent = "Sign In with Email";
-                toggleAuthMode.textContent = "Sign Up";
+                authModalTitle.textContent = "Sign in";
+                emailAuthBtn.textContent = "Sign in with email";
+                toggleAuthMode.textContent = "Create account";
+                if (authSwitchLabel) authSwitchLabel.textContent = "Don't have an account?";
                 const nameGroup = document.getElementById('auth-name-group');
                 if (nameGroup) nameGroup.remove();
             }
-        });
-    }
-
-    // Open Auth Modal
-    if (loginBtn) {
-        loginBtn.addEventListener('click', () => {
-            authModal.classList.remove('hidden');
-            authModal.style.display = 'flex';
-        });
-    }
-
-    // Close Auth Modal
-    if (closeAuthBtn) {
-        closeAuthBtn.addEventListener('click', () => {
-            authModal.classList.add('hidden');
-            authModal.style.display = 'none';
-        });
-    }
-
-    // Google Sign In
-    if (googleSignInBtn) {
-        googleSignInBtn.addEventListener('click', async () => {
-            try {
-                googleSignInBtn.disabled = true;
-                const originalText = googleSignInBtn.innerHTML;
-                googleSignInBtn.innerHTML = 'Signing in...';
-                await authManager.signInWithGoogle();
-                authModal.classList.add('hidden');
-                authModal.style.display = 'none';
-                showToast('Welcome!', 'Successfully signed in with Google', 'success');
-                googleSignInBtn.innerHTML = originalText;
-            } catch (error) {
-                showToast('Error', error.message, 'error');
-            } finally {
-                googleSignInBtn.disabled = false;
-            }
-        });
-    }
-
-    // Email Sign In / Sign Up
-    if (emailAuthForm) {
-        emailAuthForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const btn = emailAuthForm.querySelector('button');
-
-            try {
-                btn.disabled = true;
-                if (isSignUpMode) {
-                    const name = document.getElementById('auth-name').value;
-                    btn.textContent = 'Creating account...';
-                    await authManager.signUpWithEmail(email, password, name);
-                    showToast('Welcome!', 'Account created successfully', 'success');
-                } else {
-                    btn.textContent = 'Signing in...';
-                    await authManager.signInWithEmail(email, password);
-                    showToast('Welcome!', 'Successfully signed in', 'success');
-                }
-                authModal.classList.add('hidden');
-                authModal.style.display = 'none';
-            } catch (error) {
-                showToast('Error', error.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = isSignUpMode ? 'Sign Up with Email' : 'Sign In with Email';
-            }
-        });
-    }
-
-    // Sign Out
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            await authManager.signOut();
-            showToast('Signed Out', 'See you next time!', 'info');
-        });
-    }
-
-    // Update UI on Auth State Change
-    authManager.onAuthStateChanged((user) => {
-        if (user) {
-            // Update storage manager with user ID
-            cvStorage.setUserId(user.uid);
-
-            loginBtn.classList.add('hidden');
-            userProfile.classList.remove('hidden');
-            userProfile.style.display = 'flex';
-            userName.textContent = user.displayName || user.email;
-            userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=random`;
-
-            // Reload UI components that depend on storage
-            if (typeof updateHistoryList === 'function') updateHistoryList();
-            if (typeof updateTunerSections === 'function') updateTunerSections();
-        } else {
-            // Reset to guest storage
-            cvStorage.setUserId(null);
-
-            loginBtn.classList.remove('hidden');
-            userProfile.classList.add('hidden');
-            userProfile.style.display = 'none';
-
-            // Reload UI components
-            if (typeof updateHistoryList === 'function') updateHistoryList();
         }
-    });
 
+        // Toggle between Login and Sign Up
+        if (toggleAuthMode) {
+            toggleAuthMode.addEventListener('click', (e) => {
+                e.preventDefault();
+                isSignUpMode = !isSignUpMode;
+                updateAuthModeUI();
+            });
+        }
+
+        // Open Auth Modal
+        if (loginBtn) {
+            loginBtn.addEventListener('click', () => {
+                isSignUpMode = false;
+                updateAuthModeUI();
+                authModal.classList.remove('hidden');
+                authModal.style.display = 'flex';
+            });
+        }
+
+        // Close Auth Modal
+        if (closeAuthBtn) {
+            closeAuthBtn.addEventListener('click', () => {
+                authModal.classList.add('hidden');
+                authModal.style.display = 'none';
+            });
+        }
+
+        // Google Sign In
+        if (googleSignInBtn) {
+            googleSignInBtn.addEventListener('click', async () => {
+                try {
+                    googleSignInBtn.disabled = true;
+                    const originalText = googleSignInBtn.innerHTML;
+                    googleSignInBtn.innerHTML = 'Signing in...';
+                    await authManager.signInWithGoogle();
+                    authModal.classList.add('hidden');
+                    authModal.style.display = 'none';
+                    showToast('Welcome!', 'Successfully signed in with Google', 'success');
+                    googleSignInBtn.innerHTML = originalText;
+                } catch (error) {
+                    showToast('Error', error.message, 'error');
+                } finally {
+                    googleSignInBtn.disabled = false;
+                }
+            });
+        }
+
+        // Email Sign In / Sign Up
+        if (emailAuthForm) {
+            emailAuthForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('auth-email').value;
+                const password = document.getElementById('auth-password').value;
+                const btn = emailAuthForm.querySelector('button');
+
+                try {
+                    btn.disabled = true;
+                    if (isSignUpMode) {
+                        const name = document.getElementById('auth-name').value;
+                        btn.textContent = 'Creating account...';
+                        await authManager.signUpWithEmail(email, password, name);
+                        showToast('Welcome!', 'Account created successfully', 'success');
+                    } else {
+                        btn.textContent = 'Signing in...';
+                        await authManager.signInWithEmail(email, password);
+                        showToast('Welcome!', 'Successfully signed in', 'success');
+                    }
+                    authModal.classList.add('hidden');
+                    authModal.style.display = 'none';
+                } catch (error) {
+                    showToast('Error', error.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = isSignUpMode ? 'Create account with email' : 'Sign in with email';
+                }
+            });
+        }
+
+        // Sign Out
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                await authManager.signOut();
+                showToast('Signed Out', 'See you next time!', 'info');
+            });
+        }
+
+        // Update UI on Auth State Change
+        authManager.onAuthStateChanged((user) => {
+            if (user) {
+                // Update storage manager with user ID
+                cvStorage.setUserId(user.uid);
+
+                loginBtn.classList.add('hidden');
+                userProfile.classList.remove('hidden');
+                userProfile.style.display = 'flex';
+                userName.textContent = user.displayName || user.email;
+                userAvatar.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=random`;
+
+                // Reload UI components that depend on storage
+                if (typeof updateHistoryList === 'function') updateHistoryList();
+                if (typeof updateTunerSections === 'function') updateTunerSections();
+            } else {
+                // Reset to guest storage
+                cvStorage.setUserId(null);
+
+                loginBtn.classList.remove('hidden');
+                userProfile.classList.add('hidden');
+                userProfile.style.display = 'none';
+
+                // Reload UI components
+                if (typeof updateHistoryList === 'function') updateHistoryList();
+            }
+        });
 });
