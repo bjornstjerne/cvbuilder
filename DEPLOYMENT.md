@@ -13,6 +13,22 @@
 
 ## Standard Deployment Process
 
+### Deploy Gate (Required)
+
+Production should only be updated when the GitHub workflow **Deploy Gate** passes.
+
+Gate suite includes:
+- `tests/smoke.spec.js`
+- `tests/dragdrop.spec.js`
+- `tests/pdf-extract.spec.js`
+- `tests/analyze-mock.spec.js`
+
+Recommended GitHub setting:
+1. Open repository Settings -> Branches -> Branch protection rules.
+2. Protect `main`.
+3. Enable **Require status checks to pass before merging**.
+4. Require check: **Deploy Gate / gate-tests**.
+
 ### Automatic Deployment (Preferred)
 
 ```bash

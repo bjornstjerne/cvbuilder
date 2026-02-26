@@ -6,6 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:ui": "playwright test",
+    "test:gate": "playwright test tests/smoke.spec.js tests/dragdrop.spec.js tests/pdf-extract.spec.js tests/analyze-mock.spec.js --project=chromium",
+    "test:smoke:prod": "BASE_URL=https://cvoptima.vercel.app/ playwright test tests/smoke.spec.js --project=chromium",
     "release": "./scripts/release.sh"
   },
   "keywords": [],
@@ -16,6 +18,9 @@
     "@playwright/test": "^1.57.0"
   },
   "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
     "pdf-parse": "^1.1.1"
   }
 }
