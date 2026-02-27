@@ -1,4 +1,10 @@
 const { sanitizeInput, checkRateLimit, callClaude, parseClaudeJson } = require('./utils');
+const {
+    toScore,
+    normalizeRubric,
+    normalizeRiskFlags,
+    calibrateScores
+} = require('./scoring');
 
 function normalizeSuggestion(item) {
     if (!item) return null;
@@ -30,29 +36,37 @@ function normalizeSuggestion(item) {
     };
 }
 
-function normalizeResult(result) {
+function normalizeResult(result, { cvText, jdText }) {
     const normalized = { ...result };
     const incomingSuggestions = Array.isArray(result.suggestions) ? result.suggestions : [];
     const incomingKeywords = Array.isArray(result.missingKeywords) ? result.missingKeywords : [];
     const incomingQuestions = Array.isArray(result.interviewQuestions) ? result.interviewQuestions : [];
-
-    const toScore = (value) => {
-        const n = Number(value);
-        if (!Number.isFinite(n)) return 0;
-        return Math.max(0, Math.min(100, Math.round(n)));
-    };
 
     normalized.suggestions = incomingSuggestions
         .map(normalizeSuggestion)
         .filter(Boolean)
         .slice(0, 8);
 
-    normalized.score = toScore(result.score);
-    normalized.jdScore = toScore(result.jdScore);
-    normalized.missingKeywords = incomingKeywords
+    normalized.missingKeywords = Array.from(new Set(incomingKeywords
         .map((kw) => sanitizeInput(kw, 64))
-        .filter(Boolean)
+        .filter(Boolean)))
         .slice(0, 25);
+
+    const rubric = normalizeRubric(result.rubric);
+    const riskFlags = normalizeRiskFlags(result.riskFlags);
+    const calibration = calibrateScores({
+        rawScore: toScore(result.score),
+        rawJdScore: toScore(result.jdScore),
+        rubric,
+        riskFlags,
+        missingKeywords: normalized.missingKeywords,
+        cvText,
+        jdText
+    });
+
+    normalized.score = calibration.score;
+    normalized.jdScore = calibration.jdScore;
+    normalized.scoringDetails = calibration.details;
     normalized.interviewQuestions = incomingQuestions
         .map((q) => ({
             type: sanitizeInput((q && q.type) || 'general', 40).toLowerCase() || 'general',
@@ -105,11 +119,21 @@ ${jdText ? jdText.substring(0, 5000) : 'Not provided'}
 
 Provide a response in strict JSON format with the following structure:
 {
-    "score": <number 0-100>,
-    "jdScore": <number 0-100, or 0 if no JD>,
+    "score": <number 0-100, strict and evidence-based>,
+    "jdScore": <number 0-100, strict and evidence-based, or 0 if no JD>,
     "summary": "<brief summary of the candidate>",
     "strengths": ["<strength 1>", "<strength 2>", ...],
     "weaknesses": ["<weakness 1>", "<weakness 2>", ...],
+    "rubric": {
+        "mustHaveCoverage": <0-100>,
+        "experienceRelevance": <0-100>,
+        "impactEvidence": <0-100>,
+        "roleSpecificity": <0-100>,
+        "writingClarity": <0-100>
+    },
+    "riskFlags": [
+        "<missing_required_skill|seniority_gap|domain_mismatch|tooling_gap|weak_impact_metrics|vague_experience|no_leadership_evidence|job_hopping_concern>"
+    ],
     "suggestions": [
         {
             "title": "<short issue label>",
@@ -131,12 +155,19 @@ Rules:
 - Evidence must quote a concrete phrase or line from the provided CV or JD.
 - Keep evidence under 160 characters.
 - Prioritize suggestions by impact on interview and ATS outcomes.
+- Scoring strictness anchors:
+  - 90-100: exceptional and rare
+  - 70-89: strong and competitive
+  - 50-69: average/partially aligned
+  - 30-49: weak alignment, substantial gaps
+  - 0-29: poor alignment
+- Penalize missing must-haves, unclear impact metrics, and seniority mismatch.
 
 Respond with ONLY the JSON object, no markdown fences or additional text.`;
 
         const rawText = await callClaude(prompt, model);
         const parsed = parseClaudeJson(rawText);
-        const result = normalizeResult(parsed);
+        const result = normalizeResult(parsed, { cvText, jdText });
 
         res.json(result);
 

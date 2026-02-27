@@ -1315,7 +1315,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const words = cvInput.value.trim().split(/\s+/).length;
         wordCountEl.textContent = words;
         verbCountEl.textContent = "AI Analyzed";
-        readabilityEl.textContent = "AI Analyzed";
+        const method = data.scoringDetails && data.scoringDetails.methodology;
+        readabilityEl.textContent = method ? "Calibrated" : "AI Analyzed";
+        if (method && data.scoringDetails.penalties) {
+            const penalties = data.scoringDetails.penalties;
+            readabilityEl.title =
+                `Scoring model: ${method}\n` +
+                `Raw CV score: ${data.scoringDetails.rawModelScore}\n` +
+                `Raw JD score: ${data.scoringDetails.rawModelJdScore}\n` +
+                `Calibration penalties: CV ${penalties.cvPenalty}, JD keywords ${penalties.missingKeywordPenalty}, JD years gap ${penalties.yearsGapPenalty}`;
+        } else {
+            readabilityEl.title = '';
+        }
 
         // Render Section Tuner (if available)
         if (typeof renderTuner === 'function') {
