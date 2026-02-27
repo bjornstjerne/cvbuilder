@@ -34,7 +34,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=4.7">
+    <link rel="stylesheet" href="style.css?v=4.9">
 
     <!-- Vercel Analytics -->
     <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
@@ -330,11 +330,21 @@
                         </ul>
                     </div>
 
-                    <div class="card suggestions-card">
+                    <div class="card suggestions-card focus-card">
                         <h3>Improvement Suggestions</h3>
+                        <p class="subtitle">Start here: highest-impact fixes for your CV and job fit.</p>
                         <ul id="suggestions-list" class="suggestions-list">
                             <!-- Populated by JS -->
                         </ul>
+                    </div>
+
+                    <!-- Missing Keywords (Visible by default) -->
+                    <div id="missing-keywords-card" class="card keywords-card focus-card">
+                        <h3>Missing Keywords</h3>
+                        <p class="subtitle">Found in JD but missing from your CV</p>
+                        <div id="missing-keywords-list" class="keywords-list">
+                            <!-- Populated by JS -->
+                        </div>
                     </div>
 
                     <!-- Design Feedback Card (Visible when visual analysis is used) -->
@@ -352,15 +362,6 @@
                         <ul id="design-feedback-list" class="suggestions-list">
                             <!-- Populated by JS -->
                         </ul>
-                    </div>
-
-                    <!-- Missing Keywords (Visible by default) -->
-                    <div id="missing-keywords-card" class="card keywords-card">
-                        <h3>Missing Keywords</h3>
-                        <p class="subtitle">Found in JD but missing from your CV</p>
-                        <div id="missing-keywords-list" class="keywords-list">
-                            <!-- Populated by JS -->
-                        </div>
                     </div>
                 </div>
 
@@ -412,7 +413,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h2>Smart Section Tuner</h2>
-                        <p>Optimize specific parts of your CV without breaking your layout.</p>
+                        <p>Start with Summary and Experience first, then expand for more sections if needed.</p>
                     </div>
                     <div id="tuner-container" class="tuner-grid">
                         <!-- Sections will be injected here -->
@@ -716,16 +717,16 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="storage-manager.js?v=4.7"></script>
-    <script src="auth-manager.js?v=4.7"></script>
+    <script src="storage-manager.js?v=4.9"></script>
+    <script src="auth-manager.js?v=4.9"></script>
     <!-- Feature Modules -->
-    <script src="js/ui-helpers.js?v=4.7"></script>
-    <script src="js/api.js?v=4.7"></script>
-    <script src="js/file-processor.js?v=4.7"></script>
-    <script src="js/analyzer.js?v=4.7"></script>
+    <script src="js/ui-helpers.js?v=4.9"></script>
+    <script src="js/api.js?v=4.9"></script>
+    <script src="js/file-processor.js?v=4.9"></script>
+    <script src="js/analyzer.js?v=4.9"></script>
     
     <!-- Main Script -->
-    <script src="script.js?v=4.7"></script>
+    <script src="script.js?v=4.9"></script>
 </body>
 
 </html>

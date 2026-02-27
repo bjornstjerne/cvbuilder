@@ -64,5 +64,8 @@ Agile, Project Management, Data Analysis`);
 
     await expect(page.locator('#missing-keywords-list .keyword-tag')).toContainText(['React', 'Node.js']);
     await expect(page.locator('#tuner-section')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#tuner-container .tuner-card')).toHaveCount(2);
+    await expect(page.locator('.btn-tuner-toggle')).toContainText('Show more sections (1)');
+    await page.click('.btn-tuner-toggle');
     await expect(page.locator('#tuner-container .tuner-card')).toHaveCount(3);
 });

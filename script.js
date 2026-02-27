@@ -1254,6 +1254,13 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestionsList.appendChild(li);
         });
 
+        if (!suggestions.length) {
+            const empty = document.createElement('li');
+            empty.className = 'suggestion-empty';
+            empty.textContent = 'No specific suggestions returned for this run. Try adding a job description for more targeted feedback.';
+            suggestionsList.appendChild(empty);
+        }
+
         // Update Design Feedback (from visual analysis)
         const designFeedbackCard = document.getElementById('design-feedback-card');
         const designFeedbackList = document.getElementById('design-feedback-list');
@@ -1279,6 +1286,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 tag.textContent = keyword;
                 missingKeywordsList.appendChild(tag);
             });
+        } else {
+            const empty = document.createElement('p');
+            empty.className = 'keywords-empty';
+            empty.textContent = 'No missing keywords detected for this CV/JD match.';
+            missingKeywordsList.appendChild(empty);
         }
 
         // Update Interview Questions
@@ -1351,10 +1363,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const sections = parseSections(text)
             .map((section) => ({
                 title: String(section.title || 'Section').trim(),
-                content: String(section.content || '').trim()
+                content: String(section.content || '').trim(),
+                sourceIndex: Number(section.sourceIndex)
             }))
-            .filter((section) => section.content.length > 30)
-            .slice(0, 8);
+            .filter((section) => section.content.length > 8)
+            .slice(0, 8)
+            .map((section, idx) => ({
+                ...section,
+                sourceIndex: Number.isFinite(section.sourceIndex) ? section.sourceIndex : idx
+            }));
 
         tunerContainer.innerHTML = '';
 
@@ -1367,7 +1384,52 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        sections.forEach((section, index) => {
+        if (sections.length === 1 && /^full cv/i.test(sections[0].title)) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'tuner-placeholder';
+            placeholder.textContent = 'We detected one dense CV block. Add clear headings (Experience, Education, Skills) to unlock section-by-section tuning.';
+            tunerContainer.appendChild(placeholder);
+            tunerSection.classList.remove('hidden');
+            return;
+        }
+
+        const normalizeTitleKey = (value) => String(value || '')
+            .toLowerCase()
+            .replace(/[^a-z]/g, '');
+
+        const preferredOrder = ['summary', 'experience'];
+        const pickedIndexes = new Set();
+        const defaultSections = [];
+
+        preferredOrder.forEach((target) => {
+            const match = sections.find((section, idx) => !pickedIndexes.has(idx) && normalizeTitleKey(section.title).includes(target));
+            if (match) {
+                const idx = sections.indexOf(match);
+                pickedIndexes.add(idx);
+                defaultSections.push(match);
+            }
+        });
+
+        if (!defaultSections.length) {
+            sections.slice(0, 2).forEach((section, idx) => {
+                pickedIndexes.add(idx);
+                defaultSections.push(section);
+            });
+        }
+
+        if (defaultSections.length < 2) {
+            sections.forEach((section, idx) => {
+                if (defaultSections.length >= 2) return;
+                if (!pickedIndexes.has(idx)) {
+                    pickedIndexes.add(idx);
+                    defaultSections.push(section);
+                }
+            });
+        }
+
+        const extraSections = sections.filter((section, idx) => !pickedIndexes.has(idx));
+
+        const renderCards = (items) => items.forEach((section) => {
             const card = document.createElement('div');
             card.className = 'tuner-card';
 
@@ -1382,18 +1444,18 @@ document.addEventListener('DOMContentLoaded', () => {
             optimizeBtn.className = 'btn-optimize';
             optimizeBtn.type = 'button';
             optimizeBtn.innerHTML = '<span>✨</span> Optimize';
-            optimizeBtn.addEventListener('click', () => window.optimizeSection(index, optimizeBtn));
+            optimizeBtn.addEventListener('click', () => window.optimizeSection(section.sourceIndex, optimizeBtn));
 
             header.appendChild(title);
             header.appendChild(optimizeBtn);
 
             const content = document.createElement('div');
             content.className = 'tuner-content';
-            content.id = `original-${index}`;
+            content.id = `original-${section.sourceIndex}`;
             content.textContent = section.content;
 
             const optimizedContainer = document.createElement('div');
-            optimizedContainer.id = `optimized-container-${index}`;
+            optimizedContainer.id = `optimized-container-${section.sourceIndex}`;
 
             card.appendChild(header);
             card.appendChild(content);
@@ -1401,6 +1463,31 @@ document.addEventListener('DOMContentLoaded', () => {
             tunerContainer.appendChild(card);
         });
 
+        const renderView = (expanded) => {
+            tunerContainer.innerHTML = '';
+            renderCards(defaultSections);
+            if (expanded) {
+                renderCards(extraSections);
+            }
+
+            if (extraSections.length) {
+                const controls = document.createElement('div');
+                controls.className = 'tuner-controls';
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'btn-tuner-toggle';
+                toggleBtn.type = 'button';
+                toggleBtn.textContent = expanded
+                    ? 'Show fewer sections'
+                    : `Show more sections (${extraSections.length})`;
+                toggleBtn.addEventListener('click', () => renderView(!expanded));
+
+                controls.appendChild(toggleBtn);
+                tunerContainer.appendChild(controls);
+            }
+        };
+
+        renderView(false);
         tunerSection.classList.remove('hidden');
     }
 
