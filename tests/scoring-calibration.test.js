@@ -15,6 +15,14 @@ test('extract years helpers detect requirement and candidate years', () => {
     assert.equal(estimateCandidateYears(cv), 5);
 });
 
+test('extract years helper supports required phrasings', () => {
+    const jd1 = 'Senior Product Manager role, 8+ years required in B2B SaaS.';
+    const jd2 = 'Required experience: 10 years in enterprise software delivery.';
+
+    assert.equal(extractRequiredYears(jd1), 8);
+    assert.equal(extractRequiredYears(jd2), 10);
+});
+
 test('calibration penalizes optimistic fit when must-have coverage is weak', () => {
     const rubric = normalizeRubric({
         mustHaveCoverage: 38,

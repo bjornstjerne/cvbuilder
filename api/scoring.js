@@ -51,7 +51,9 @@ function extractRequiredYears(jdText) {
     const regexes = [
         /(?:at least|minimum of|min\.?)\s*(\d{1,2})\s*\+?\s*years?/g,
         /(\d{1,2})\s*\+?\s*years?\s+of\s+experience/g,
-        /(\d{1,2})\s*\+?\s*years?\s+experience/g
+        /(\d{1,2})\s*\+?\s*years?\s+experience/g,
+        /(\d{1,2})\s*\+?\s*years?\s*(?:required|minimum|preferred)/g,
+        /required\s*(?:experience)?\s*[:\-]?\s*(\d{1,2})\s*\+?\s*years?/g
     ];
 
     let best = null;
