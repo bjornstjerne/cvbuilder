@@ -47,6 +47,95 @@ document.addEventListener('DOMContentLoaded', () => {
     const tunerSection = document.getElementById('tuner-section');
     const tunerContainer = document.getElementById('tuner-container');
     let latestCoverLetter = '';
+    let clientErrorEventsSent = 0;
+    const MAX_CLIENT_ERROR_EVENTS = 8;
+
+    function safeStringify(value, fallback = 'Unknown') {
+        try {
+            if (value == null) return fallback;
+            if (typeof value === 'string') return value;
+            if (typeof value === 'object') return JSON.stringify(value);
+            return String(value);
+        } catch (_) {
+            return fallback;
+        }
+    }
+
+    function shouldIgnoreClientError(message) {
+        const text = String(message || '').toLowerCase();
+        if (!text) return true;
+
+        const ignoredPatterns = [
+            'resizeobserver loop limit exceeded',
+            'non-error promise rejection captured',
+            'networkerror when attempting to fetch resource'
+        ];
+
+        return ignoredPatterns.some((pattern) => text.includes(pattern));
+    }
+
+    function sendClientErrorToServer(payload) {
+        if (clientErrorEventsSent >= MAX_CLIENT_ERROR_EVENTS) return;
+        clientErrorEventsSent += 1;
+
+        const body = JSON.stringify(payload);
+
+        // sendBeacon is resilient during page unload/navigation.
+        if (navigator.sendBeacon) {
+            const blob = new Blob([body], { type: 'application/json' });
+            navigator.sendBeacon('/api/log-client-error', blob);
+            return;
+        }
+
+        fetch('/api/log-client-error', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+            keepalive: true
+        }).catch(() => {
+            // Avoid recursive reporting loops if logging endpoint is unavailable.
+        });
+    }
+
+    function installClientErrorMonitoring() {
+        if (window.__cvErrorMonitoringInstalled) return;
+        window.__cvErrorMonitoringInstalled = true;
+
+        const basePayload = {
+            page: window.location.pathname,
+            build: new URLSearchParams(window.location.search).get('build') || '',
+            userAgent: navigator.userAgent
+        };
+
+        window.addEventListener('error', (event) => {
+            const message = safeStringify(event.message);
+            if (shouldIgnoreClientError(message)) return;
+
+            sendClientErrorToServer({
+                type: 'window-error',
+                message: message.slice(0, 240),
+                source: safeStringify(event.filename || '').slice(0, 240),
+                line: Number(event.lineno) || 0,
+                col: Number(event.colno) || 0,
+                stack: safeStringify(event.error && event.error.stack || '').slice(0, 1200),
+                ...basePayload
+            });
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            const reason = event.reason;
+            const message = (reason && reason.message) ? reason.message : safeStringify(reason, 'Unhandled promise rejection');
+            if (shouldIgnoreClientError(message)) return;
+
+            sendClientErrorToServer({
+                type: 'unhandled-rejection',
+                message: safeStringify(message).slice(0, 240),
+                stack: safeStringify(reason && reason.stack || '').slice(0, 1200),
+                ...basePayload
+            });
+        });
+    }
+    installClientErrorMonitoring();
 
     // Action verbs and stopwords moved to js/analyzer.js
     // UI Helpers moved to js/ui-helpers.js
