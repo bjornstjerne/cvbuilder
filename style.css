@@ -1800,6 +1800,31 @@ footer {
     border: 2px dashed var(--border-color);
 }
 
+.tuner-controls {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    margin-top: -4px;
+}
+
+.btn-tuner-toggle {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-tuner-toggle:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    transform: translateY(-1px);
+}
+
 /* Force Input Cards Side-by-Side on Desktop */
 @media (min-width: 1024px) {
     .app-container {
