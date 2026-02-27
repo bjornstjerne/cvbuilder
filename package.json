@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:ui": "playwright test",
-    "test:scoring": "node --test tests/scoring-calibration.test.js",
+    "benchmark:scoring": "node scripts/run-scoring-benchmark.js",
+    "test:scoring": "node --test tests/scoring-calibration.test.js tests/scoring-benchmark.test.js",
     "test:gate": "npm run test:scoring && playwright test tests/smoke.spec.js tests/dragdrop.spec.js tests/pdf-extract.spec.js tests/analyze-mock.spec.js --project=chromium",
     "test:smoke:prod": "BASE_URL=https://cvoptima.vercel.app/ playwright test tests/smoke.spec.js --project=chromium",
     "release": "./scripts/release.sh"

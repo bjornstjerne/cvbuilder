@@ -124,7 +124,7 @@ const CV_FLAG_PENALTIES = {
     domain_mismatch: 5,
     tooling_gap: 4,
     seniority_gap: 5,
-    missing_required_skill: 6,
+    missing_required_skill: 9,
     no_leadership_evidence: 4,
     job_hopping_concern: 4
 };
@@ -201,6 +201,11 @@ function calibrateScores({ rawScore, rawJdScore, rubric, riskFlags, missingKeywo
         calibratedJdScore = rawJdScore * 0.25 + rubricFitScore * 0.75;
         calibratedJdScore = compressHighScores(calibratedJdScore, 62, 0.52);
         calibratedJdScore = Math.round(calibratedJdScore - jdPenalty - 6);
+
+        // Avoid under-scoring candidates with clear, low-risk alignment.
+        if (combinedRiskFlags.length === 0 && rubric.mustHaveCoverage >= 85 && rubric.experienceRelevance >= 80) {
+            calibratedJdScore += 4;
+        }
 
         if (rubric.mustHaveCoverage < 40) calibratedJdScore = Math.min(calibratedJdScore, 55);
         if (rubric.mustHaveCoverage < 25) calibratedJdScore = Math.min(calibratedJdScore, 45);
