@@ -526,6 +526,15 @@ body {
     gap: 24px;
 }
 
+.focus-card,
+.design-card {
+    grid-column: 1 / -1;
+}
+
+.focus-card {
+    min-height: 220px;
+}
+
 /* Score Card */
 .score-card {
     display: flex;
@@ -635,8 +644,9 @@ body {
 .suggestions-list {
     list-style: none;
     margin-top: 16px;
-    max-height: 200px;
+    max-height: 420px;
     overflow-y: auto;
+    padding-right: 8px;
 }
 
 .suggestions-list li {
@@ -654,10 +664,10 @@ body {
 
 .suggestion-item {
     display: block !important;
-    padding: 12px !important;
+    padding: 16px !important;
     border: 1px solid var(--border-color);
-    border-radius: 10px;
-    margin-bottom: 10px;
+    border-radius: 12px;
+    margin-bottom: 12px;
     background: #fff;
 }
 
@@ -675,20 +685,34 @@ body {
 
 .suggestion-title {
     color: var(--text-primary);
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
 .suggestion-recommendation {
     margin: 0 0 8px 0;
     color: var(--text-primary);
     line-height: 1.45;
+    font-size: 0.97rem;
 }
 
 .suggestion-evidence {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
     font-style: italic;
+}
+
+.suggestion-empty {
+    display: block !important;
+    padding: 16px !important;
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-color);
+}
+
+.suggestion-empty::before {
+    display: none;
 }
 
 .priority-badge {
@@ -724,16 +748,24 @@ body {
 .keywords-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
+    align-content: flex-start;
+    min-height: 80px;
 }
 
 .keyword-tag {
     background-color: rgba(248, 113, 113, 0.15);
     color: var(--danger);
-    padding: 4px 12px;
+    padding: 7px 14px;
     border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.keywords-empty {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
 }
 
 /* Design Feedback Card (Visual Analysis) */
@@ -915,6 +947,10 @@ footer {
     .results-grid {
         grid-template-columns: 1fr;
         gap: 16px;
+    }
+
+    .suggestions-list {
+        max-height: 320px;
     }
 
     .score-circle-container {

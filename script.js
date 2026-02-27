@@ -1254,6 +1254,13 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestionsList.appendChild(li);
         });
 
+        if (!suggestions.length) {
+            const empty = document.createElement('li');
+            empty.className = 'suggestion-empty';
+            empty.textContent = 'No specific suggestions returned for this run. Try adding a job description for more targeted feedback.';
+            suggestionsList.appendChild(empty);
+        }
+
         // Update Design Feedback (from visual analysis)
         const designFeedbackCard = document.getElementById('design-feedback-card');
         const designFeedbackList = document.getElementById('design-feedback-list');
@@ -1279,6 +1286,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 tag.textContent = keyword;
                 missingKeywordsList.appendChild(tag);
             });
+        } else {
+            const empty = document.createElement('p');
+            empty.className = 'keywords-empty';
+            empty.textContent = 'No missing keywords detected for this CV/JD match.';
+            missingKeywordsList.appendChild(empty);
         }
 
         // Update Interview Questions
@@ -1353,7 +1365,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 title: String(section.title || 'Section').trim(),
                 content: String(section.content || '').trim()
             }))
-            .filter((section) => section.content.length > 30)
+            .filter((section) => section.content.length > 8)
             .slice(0, 8);
 
         tunerContainer.innerHTML = '';
@@ -1362,6 +1374,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const placeholder = document.createElement('div');
             placeholder.className = 'tuner-placeholder';
             placeholder.textContent = 'No clear sections detected yet. Add section headings like Experience, Education, or Skills.';
+            tunerContainer.appendChild(placeholder);
+            tunerSection.classList.remove('hidden');
+            return;
+        }
+
+        if (sections.length === 1 && /^full cv/i.test(sections[0].title)) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'tuner-placeholder';
+            placeholder.textContent = 'We detected one dense CV block. Add clear headings (Experience, Education, Skills) to unlock section-by-section tuning.';
             tunerContainer.appendChild(placeholder);
             tunerSection.classList.remove('hidden');
             return;
