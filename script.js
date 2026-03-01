@@ -1090,75 +1090,143 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const downloadCvBtn = document.getElementById('download-cv-btn');
     if (downloadCvBtn) {
-        downloadCvBtn.addEventListener('click', () => {
-            const cvText = cvInput.value;
+        downloadCvBtn.addEventListener('click', async () => {
+            const cvText = getDownloadableCvText();
             if (!cvText) {
                 showToast('Error', 'No CV text to download', 'error');
                 return;
             }
-            generateCVPDF(cvText);
+
+            downloadCvBtn.disabled = true;
+            downloadCvBtn.classList.add('loading');
+            try {
+                await generateCVPDF(cvText);
+                showToast('Success', 'CV downloaded successfully', 'success');
+            } catch (err) {
+                console.error('PDF Generation Error:', err);
+                showToast('Error', 'Failed to generate PDF. Please try again.', 'error');
+            } finally {
+                downloadCvBtn.disabled = false;
+                downloadCvBtn.classList.remove('loading');
+            }
         });
     }
 
-    function generateCVPDF(text) {
-        // Create a temporary element for PDF generation
-        const element = document.createElement('div');
-        element.style.padding = '40px';
-        element.style.fontFamily = 'Arial, sans-serif';
-        element.style.fontSize = '12pt';
-        element.style.lineHeight = '1.5';
-        element.style.color = '#333';
+    function getDownloadableCvText() {
+        const raw = String((cvInput && cvInput.value) || '').replace(/\r\n?/g, '\n').trim();
+        if (!raw) return '';
+        const lowered = raw.toLowerCase();
+        if (lowered.startsWith('reading file...')) return '';
+        if (lowered.startsWith('error reading file:')) return '';
+        return raw;
+    }
 
-        // Simple formatting: preserve newlines and bold potential headers
-        // This is a basic heuristic to make it look better than raw text
-        let formattedHtml = text
-            .split('\n')
-            .map(line => {
+    async function generateCVPDF(text) {
+        const normalizedText = String(text || '')
+            .replace(/\r\n?/g, '\n')
+            .replace(/\u00A0/g, ' ')
+            .replace(/[ \t]+\n/g, '\n')
+            .trim();
+
+        if (!normalizedText) {
+            throw new Error('No CV text available for PDF export');
+        }
+
+        // Primary path: jsPDF text rendering is more stable across browsers than off-screen html2canvas capture.
+        if (window.jspdf && window.jspdf.jsPDF) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
+            const margin = 44;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const maxWidth = pageWidth - margin * 2;
+            const bodyLineHeight = 16;
+            const headingGap = 8;
+            let y = 54;
+
+            const isHeadingLine = (line) => {
+                const trimmed = String(line || '').trim();
+                if (!trimmed || trimmed.length > 70) return false;
+                if (/^[A-Z][A-Za-z ]{2,}:$/.test(trimmed)) return true;
+                if (trimmed === trimmed.toUpperCase() && !trimmed.includes('.') && !trimmed.includes(',')) return true;
+                return /^(summary|profile|experience|education|skills|projects|certifications|languages|contact)$/i.test(trimmed);
+            };
+
+            const ensureSpace = (neededHeight) => {
+                if (y + neededHeight <= pageHeight - margin) return;
+                doc.addPage();
+                y = margin;
+            };
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11.5);
+
+            const lines = normalizedText.split('\n');
+            lines.forEach((line) => {
                 const trimmed = line.trim();
-                // Check if line looks like a header (uppercase, short, no punctuation)
-                if (trimmed.length > 0 && trimmed.length < 50 && trimmed === trimmed.toUpperCase() && !trimmed.includes('.')) {
-                    return `<h3 style="margin-top: 20px; margin-bottom: 10px; color: #0f766e; border-bottom: 1px solid #ccc; padding-bottom: 5px;">${trimmed}</h3>`;
+                if (!trimmed) {
+                    y += 8;
+                    return;
                 }
-                // Check for bullet points
-                if (trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')) {
-                    return `<div style="margin-left: 20px; margin-bottom: 5px;">• ${trimmed.substring(1).trim()}</div>`;
-                }
-                // Regular paragraph
-                if (trimmed.length > 0) {
-                    return `<p style="margin-bottom: 10px;">${trimmed}</p>`;
-                }
-                return '';
-            })
-            .join('');
 
-        element.innerHTML = formattedHtml;
+                if (isHeadingLine(trimmed)) {
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(12.5);
+                    const headingText = trimmed.replace(/:$/, '');
+                    const wrapped = doc.splitTextToSize(headingText, maxWidth);
+                    ensureSpace(wrapped.length * (bodyLineHeight + 1) + headingGap);
+                    wrapped.forEach((w) => {
+                        doc.text(w, margin, y);
+                        y += bodyLineHeight + 1;
+                    });
+                    y += headingGap;
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(11.5);
+                    return;
+                }
 
-        // Append to body but hide it visually (off-screen) to ensure html2canvas can render it
-        element.style.position = 'absolute';
-        element.style.left = '-9999px';
-        element.style.top = '0';
-        document.body.appendChild(element);
+                const bullet = /^[-•*]\s+/.test(trimmed);
+                const content = bullet ? `• ${trimmed.replace(/^[-•*]\s+/, '')}` : trimmed;
+                const wrapped = doc.splitTextToSize(content, maxWidth);
+                ensureSpace(wrapped.length * bodyLineHeight + 4);
+                wrapped.forEach((w) => {
+                    doc.text(w, margin, y);
+                    y += bodyLineHeight;
+                });
+                y += 4;
+            });
+
+            doc.save('Optimized_CV.pdf');
+            return;
+        }
+
+        // Fallback path: html2pdf on a hidden in-viewport node (not off-screen) to avoid blank renders.
+        if (typeof html2pdf !== 'function') {
+            throw new Error('PDF library not available');
+        }
+
+        const exportNode = document.createElement('div');
+        exportNode.style.cssText =
+            'position:fixed;left:0;top:0;width:794px;min-height:1123px;padding:48px;background:#ffffff;color:#1f2937;' +
+            'font-family:Arial,sans-serif;font-size:12pt;line-height:1.5;white-space:pre-wrap;opacity:0;pointer-events:none;z-index:-1;';
+        exportNode.textContent = normalizedText;
+        document.body.appendChild(exportNode);
 
         const opt = {
-            margin: 10,
+            margin: 8,
             filename: 'Optimized_CV.pdf',
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            html2canvas: { scale: 2, backgroundColor: '#ffffff' },
+            jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(element).save()
-            .then(() => {
-                showToast('Success', 'CV downloaded successfully', 'success');
-                document.body.removeChild(element);
-            })
-            .catch(err => {
-                console.error('PDF Generation Error:', err);
-                showToast('Error', 'Failed to generate PDF. Please try again.', 'error');
-                if (document.body.contains(element)) {
-                    document.body.removeChild(element);
-                }
-            });
+        try {
+            await html2pdf().set(opt).from(exportNode).save();
+        } finally {
+            if (document.body.contains(exportNode)) {
+                document.body.removeChild(exportNode);
+            }
+        }
     }
 
     async function analyzeWithBackend(cvText, jdText) {
